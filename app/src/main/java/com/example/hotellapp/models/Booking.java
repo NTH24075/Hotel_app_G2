@@ -2,6 +2,9 @@ package com.example.hotellapp.models;
 
 public class Booking {
     private int bookingId;
+    private int userId;
+    private int roomTypeId;
+
     private String bookingCode;
     private String guestName;
     private String roomTypeName;
@@ -9,10 +12,24 @@ public class Booking {
     private String checkOutDate;
     private String bookingStatus;
     private String paymentStatus;
+
     private int guestCount;
     private int numberOfRooms;
+    private int nights;
+
+    private double pricePerNight;
     private double totalAmount;
+
     private String specialRequest;
+
+    public static final String BOOKING_PENDING = "Pending";
+    public static final String BOOKING_CONFIRMED = "Confirmed";
+    public static final String BOOKING_CHECKED_IN = "CheckedIn";
+    public static final String BOOKING_CHECKED_OUT = "CheckedOut";
+
+    public static final String PAYMENT_UNPAID = "Unpaid";
+    public static final String PAYMENT_PAID = "Paid";
+    public static final String PAYMENT_CONFIRM_PAID = "ConfirmPaid";
 
     public Booking() {
     }
@@ -23,6 +40,22 @@ public class Booking {
 
     public void setBookingId(int bookingId) {
         this.bookingId = bookingId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public int getRoomTypeId() {
+        return roomTypeId;
+    }
+
+    public void setRoomTypeId(int roomTypeId) {
+        this.roomTypeId = roomTypeId;
     }
 
     public String getBookingCode() {
@@ -95,6 +128,22 @@ public class Booking {
 
     public void setNumberOfRooms(int numberOfRooms) {
         this.numberOfRooms = numberOfRooms;
+    }
+
+    public int getNights() {
+        return nights;
+    }
+
+    public void setNights(int nights) {
+        this.nights = nights;
+    }
+
+    public double getPricePerNight() {
+        return pricePerNight;
+    }
+
+    public void setPricePerNight(double pricePerNight) {
+        this.pricePerNight = pricePerNight;
     }
 
     public double getTotalAmount() {

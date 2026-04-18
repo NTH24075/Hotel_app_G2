@@ -2,7 +2,7 @@ package com.example.hotellapp.database;
 
 public final class DatabaseContract {
     public static final String DATABASE_NAME = "hotel_app.db";
-    public static final int DATABASE_VERSION = 9;
+    public static final int DATABASE_VERSION = 10;
 
     private DatabaseContract() {
     }
@@ -70,11 +70,12 @@ public final class DatabaseContract {
         public static final String COLUMN_CONTENT = "ReviewContent";
         public static final String COLUMN_BOOKING_CODE = "BookingCode";
     }
+
     public static final class UsersTable {
         public static final String TABLE_NAME = "Users";
-        public static final String COLUMN_FULL_NAME_UNSIGNED = "FullNameUnsigned";
         public static final String COLUMN_ID = "UserId";
         public static final String COLUMN_FULL_NAME = "FullName";
+        public static final String COLUMN_FULL_NAME_UNSIGNED = "FullNameUnsigned";
         public static final String COLUMN_EMAIL = "Email";
         public static final String COLUMN_PHONE = "Phone";
     }
@@ -112,7 +113,7 @@ public final class DatabaseContract {
         public static final String COLUMN_PAID_AT = "PaidAt";
         public static final String COLUMN_NOTE = "Note";
 
-        public static final String STATUS_PENDING = "Pending";
+        public static final String STATUS_UNPAID = "Unpaid";
         public static final String STATUS_PAID = "Paid";
         public static final String STATUS_REFUNDED = "Refunded";
     }
