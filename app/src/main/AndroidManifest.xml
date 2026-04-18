@@ -7,15 +7,22 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Hotel_app_G2">
 
-        <!-- Main / Splash -->
-        <activity android:name=".MainActivity" />
+        <!-- Splash / Launcher -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <!-- Guest Flow -->
+        <activity android:name=".ui.guest.GuestMainActivity" />
         <activity android:name=".ui.guest.GuestProfileActivity" />
         <activity android:name=".ui.guest.SearchResultsActivity" />
         <activity android:name=".ui.guest.RoomDetailActivity" />
@@ -23,15 +30,11 @@
         <activity android:name=".ui.guest.GuestChangPassword" />
         <activity android:name=".ui.guest.BookingActivity" />
         <activity android:name=".ui.guest.BookingServicesActivity" />
+        <activity android:name=".ui.guest.PaymentActivity" />
+        <activity android:name=".ui.guest.HistoryBookingActivity" />
+        <activity android:name=".ui.guest.ReviewActivity" />
 
-        <activity
-            android:name=".ui.guest.GuestMainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+
 
         <!-- Auth -->
         <activity
@@ -49,7 +52,7 @@
 
         <!-- Receptionist Flow -->
         <activity
-            android:name=".ui.receptionist.ReceptionistMainActivity"
+            android:name="com.example.hotellapp.ui.receptionist.ReceptionistMainActivity"
             android:exported="false" />
         <activity android:name=".ui.receptionist.BookingDetailActivity" />
         <activity android:name=".ui.receptionist.ReceptionistBookingActivity" />

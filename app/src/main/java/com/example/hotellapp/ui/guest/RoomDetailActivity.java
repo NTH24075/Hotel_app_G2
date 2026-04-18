@@ -253,17 +253,23 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private void loadReviews(SQLiteDatabase db) {
         reviewContainer.removeAllViews();
-        String query = "SELECT GuestName, GuestInitials, ReviewMonth, Rating, ReviewContent, BookingCode FROM Reviews WHERE RoomTypeId = ? ORDER BY ReviewId DESC";
+
+        String query =
+                "SELECT " +
+                        DatabaseContract.ReviewsTable.COLUMN_GUEST_NAME + ", " +
+                        DatabaseContract.ReviewsTable.COLUMN_RATING + ", " +
+                        DatabaseContract.ReviewsTable.COLUMN_CONTENT + " " +
+                        "FROM " + DatabaseContract.ReviewsTable.TABLE_NAME + " " +
+                        "WHERE " + DatabaseContract.ReviewsTable.COLUMN_ROOM_TYPE_ID + " = ? " +
+                        "ORDER BY " + DatabaseContract.ReviewsTable.COLUMN_ID + " DESC " +
+                        "LIMIT 5";
 
         try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
             while (cursor.moveToNext()) {
                 reviewContainer.addView(createReviewCard(
                         cursor.getString(0),
-                        cursor.getString(1),
-                        cursor.getString(2),
-                        cursor.getInt(3),
-                        cursor.getString(4),
-                        cursor.getString(5)
+                        cursor.getInt(1),
+                        cursor.getString(2)
                 ));
             }
         }
@@ -385,7 +391,7 @@ public class RoomDetailActivity extends AppCompatActivity {
         return pill;
     }
 
-    private View createReviewCard(String guestName, String initials, String month, int rating, String content, String bookingCode) {
+    private View createReviewCard(String guestName, int rating, String content) {
         CardView card = new CardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -401,73 +407,40 @@ public class RoomDetailActivity extends AppCompatActivity {
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(12), dp(12), dp(12), dp(12));
 
-        LinearLayout top = new LinearLayout(this);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-        top.setGravity(Gravity.CENTER_VERTICAL);
+        // Dòng 1: tên guest
+        TextView nameView = new TextView(this);
+        nameView.setText(safeText(guestName, "Khách hàng"));
+        nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        nameView.setTypeface(Typeface.DEFAULT_BOLD);
+        nameView.setTextColor(ContextCompat.getColor(this, R.color.text_black));
+        body.addView(nameView);
 
-        TextView avatar = new TextView(this);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(31), dp(31));
-        avatar.setLayoutParams(avatarParams);
-        avatar.setGravity(Gravity.CENTER);
-        avatar.setText(initials);
-        avatar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        avatar.setTypeface(Typeface.DEFAULT_BOLD);
-        avatar.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
-        avatar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_dark));
-        top.addView(avatar);
+        // Dòng 2: sao
+        TextView starView = new TextView(this);
+        LinearLayout.LayoutParams starParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        starParams.setMargins(0, dp(4), 0, 0);
+        starView.setLayoutParams(starParams);
+        starView.setText(buildStars(rating));
+        starView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        starView.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
+        body.addView(starView);
 
-        LinearLayout info = new LinearLayout(this);
-        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        infoParams.setMargins(dp(8), 0, 0, 0);
-        info.setLayoutParams(infoParams);
-        info.setOrientation(LinearLayout.VERTICAL);
-
-        TextView name = new TextView(this);
-        name.setText(guestName);
-        name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        name.setTypeface(Typeface.DEFAULT_BOLD);
-        name.setTextColor(ContextCompat.getColor(this, R.color.text_black));
-        info.addView(name);
-
-        TextView date = new TextView(this);
-        date.setText(month);
-        date.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        date.setTextColor(Color.parseColor("#BBBBBB"));
-        info.addView(date);
-        top.addView(info);
-
-        TextView stars = new TextView(this);
-        stars.setText(buildStars(rating));
-        stars.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        stars.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
-        top.addView(stars);
-
-        body.addView(top);
-
-        TextView reviewText = new TextView(this);
-        LinearLayout.LayoutParams reviewParams = new LinearLayout.LayoutParams(
+        // Dòng 3: comment
+        TextView commentView = new TextView(this);
+        LinearLayout.LayoutParams commentParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        reviewParams.setMargins(0, dp(7), 0, 0);
-        reviewText.setLayoutParams(reviewParams);
-        reviewText.setText(content);
-        reviewText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        reviewText.setLineSpacing(0, 1.4f);
-        reviewText.setTextColor(Color.parseColor("#555555"));
-        body.addView(reviewText);
-
-        TextView booking = new TextView(this);
-        LinearLayout.LayoutParams bookingParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        bookingParams.setMargins(0, dp(4), 0, 0);
-        booking.setLayoutParams(bookingParams);
-        booking.setText("Booking đã xác nhận · " + bookingCode);
-        booking.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
-        booking.setTextColor(Color.parseColor("#BBBBBB"));
-        body.addView(booking);
+        commentParams.setMargins(0, dp(6), 0, 0);
+        commentView.setLayoutParams(commentParams);
+        commentView.setText(safeText(content, "Không có nội dung đánh giá."));
+        commentView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        commentView.setTextColor(Color.parseColor("#555555"));
+        commentView.setLineSpacing(0, 1.3f);
+        body.addView(commentView);
 
         card.addView(body);
         return card;

@@ -28,7 +28,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(
                                     context.getApplicationContext(),
                                     AppDatabase.class,
-                                    "hotel_app.db"
+                                    "hotel_app_room.db"
                             )
                             .fallbackToDestructiveMigration()
                             .allowMainThreadQueries()

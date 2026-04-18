@@ -115,6 +115,7 @@ public final class DatabaseContract {
 
         public static final String STATUS_UNPAID = "Unpaid";
         public static final String STATUS_PAID = "Paid";
+        public static final String STATUS_DONE = "Done";
         public static final String STATUS_REFUNDED = "Refunded";
     }
 

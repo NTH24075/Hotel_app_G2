@@ -27,6 +27,8 @@ public class BookingDetail {
     private String paymentMethod;
     private String specialRequest;
 
+
+
     public int getBookingId() {
         return bookingId;
     }

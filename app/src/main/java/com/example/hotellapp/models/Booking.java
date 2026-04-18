@@ -29,7 +29,7 @@ public class Booking {
 
     public static final String PAYMENT_UNPAID = "Unpaid";
     public static final String PAYMENT_PAID = "Paid";
-    public static final String PAYMENT_CONFIRM_PAID = "ConfirmPaid";
+    public static final String PAYMENT_DONE = "Done";
 
     public Booking() {
     }
@@ -49,6 +49,9 @@ public class Booking {
     public void setUserId(int userId) {
         this.userId = userId;
     }
+
+
+
 
     public int getRoomTypeId() {
         return roomTypeId;

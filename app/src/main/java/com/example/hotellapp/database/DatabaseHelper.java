@@ -240,14 +240,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void seedUsers(SQLiteDatabase db) {
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(1,'Lê Văn Khách','Le Van Khach','khach1@gmail.com','0901000003')");
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(2,'Phạm Thị Hoa','Pham Thi Hoa','hoa@gmail.com','0901000004')");
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(3,'Nguyễn Văn Guest','Nguyen Van Guest','guest@gmail.com','0987654321')");
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(4,'Kiên Nhân','Kien Nhan','nhan@gmail.com','0977000000')");
+
     }
 
     private void seedBookings(SQLiteDatabase db) {

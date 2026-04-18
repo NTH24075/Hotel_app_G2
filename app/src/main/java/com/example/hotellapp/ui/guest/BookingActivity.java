@@ -10,6 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.hotellapp.R;
 import com.example.hotellapp.dao.BookingDAO;
+import com.example.hotellapp.ui.auth.LoginActivity;
+import com.example.hotellapp.utils.SessionManager;
+import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,7 +23,9 @@ public class BookingActivity extends AppCompatActivity {
     private TextView tvBookingCode, tvUserName, tvPhone, tvEmail;
     private TextView tvRoomType, tvCheckIn, tvCheckOut, tvGuests, tvRooms, tvNights;
     private TextView tvRoomTotal, tvServiceTotal, tvTotalAmount;
-    private TextView tvBookingStatus, tvPaymentStatus, tvSpecialRequest;
+    private TextView tvBookingStatus, tvPaymentStatus;
+
+    private TextInputEditText edtSpecialRequest;
 
     private Button btnBackBooking, btnConfirmBooking;
 
@@ -29,19 +34,20 @@ public class BookingActivity extends AppCompatActivity {
     private String priceText;
     private String totalPriceText;
     private String capacityText;
-    private String bedText;
-    private String areaText;
-    private String availabilityText;
 
     private String checkInDate;
     private String checkOutDate;
     private int guestCount;
     private int numberOfRooms;
 
+    private SessionManager sessionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.guest_bookingdetail);
+
+        sessionManager = new SessionManager(this);
 
         initViews();
         readIntentData();
@@ -61,18 +67,22 @@ public class BookingActivity extends AppCompatActivity {
         tvUserName = findViewById(R.id.tvUserName);
         tvPhone = findViewById(R.id.tvPhone);
         tvEmail = findViewById(R.id.tvEmail);
+
         tvRoomType = findViewById(R.id.tvRoomType);
         tvCheckIn = findViewById(R.id.tvCheckIn);
         tvCheckOut = findViewById(R.id.tvCheckOut);
         tvGuests = findViewById(R.id.tvGuests);
         tvRooms = findViewById(R.id.tvRooms);
         tvNights = findViewById(R.id.tvNights);
+
         tvRoomTotal = findViewById(R.id.tvRoomTotal);
         tvServiceTotal = findViewById(R.id.tvServiceTotal);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
+
         tvBookingStatus = findViewById(R.id.tvBookingStatus);
         tvPaymentStatus = findViewById(R.id.tvPaymentStatus);
-        tvSpecialRequest = findViewById(R.id.tvSpecialRequest);
+
+        edtSpecialRequest = findViewById(R.id.edtSpecialRequest);
 
         btnBackBooking = findViewById(R.id.btnBackBooking);
         btnConfirmBooking = findViewById(R.id.btnConfirmBooking);
@@ -84,9 +94,6 @@ public class BookingActivity extends AppCompatActivity {
         priceText = getIntent().getStringExtra("PRICE_TEXT");
         totalPriceText = getIntent().getStringExtra("TOTAL_PRICE_TEXT");
         capacityText = getIntent().getStringExtra("CAPACITY_TEXT");
-        bedText = getIntent().getStringExtra("BED_TEXT");
-        areaText = getIntent().getStringExtra("AREA_TEXT");
-        availabilityText = getIntent().getStringExtra("AVAILABILITY_TEXT");
 
         checkInDate = getIntent().getStringExtra("CHECK_IN_DATE");
         checkOutDate = getIntent().getStringExtra("CHECK_OUT_DATE");
@@ -99,9 +106,13 @@ public class BookingActivity extends AppCompatActivity {
         tvBookingStatus.setText("Chưa xác nhận");
         tvPaymentStatus.setText("Unpaid");
 
-        tvUserName.setText("Khách hàng");
-        tvPhone.setText("Chưa có số điện thoại");
-        tvEmail.setText("Chưa có email");
+        String fullName = sessionManager.getFullName();
+        String email = sessionManager.getEmail();
+        String phone = sessionManager.getPhone();
+
+        tvUserName.setText(isBlank(fullName) ? "Khách hàng" : fullName);
+        tvPhone.setText(isBlank(phone) ? "Chưa có số điện thoại" : phone);
+        tvEmail.setText(isBlank(email) ? "Chưa có email" : email);
 
         tvRoomType.setText(safe(roomName, "Chưa có thông tin phòng"));
         tvCheckIn.setText("Check-in: " + safe(checkInDate, getTodayPlusDays(0)));
@@ -114,36 +125,39 @@ public class BookingActivity extends AppCompatActivity {
         tvServiceTotal.setText("Tiền dịch vụ: 0 VNĐ");
         tvTotalAmount.setText(safe(totalPriceText, "0 VNĐ"));
 
-        StringBuilder special = new StringBuilder();
-        if (bedText != null && !bedText.trim().isEmpty()) {
-            special.append("Giường: ").append(bedText);
-        }
-        if (areaText != null && !areaText.trim().isEmpty()) {
-            if (special.length() > 0) special.append("\n");
-            special.append("Diện tích: ").append(areaText);
-        }
-        if (availabilityText != null && !availabilityText.trim().isEmpty()) {
-            if (special.length() > 0) special.append("\n");
-            special.append(availabilityText);
-        }
-
-        tvSpecialRequest.setText(special.toString());
+        // QUAN TRỌNG: không set text mặc định nữa
+        edtSpecialRequest.setText("");
+        edtSpecialRequest.setHint("Ví dụ: cần phòng tầng cao, thêm gối, gần cửa sổ...");
     }
 
     private void bindActions() {
         btnBackBooking.setOnClickListener(v -> finish());
 
         btnConfirmBooking.setOnClickListener(v -> {
+            int userId = sessionManager.getUserId();
+
+            if (!sessionManager.isLoggedIn() || userId <= 0) {
+                Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(BookingActivity.this, LoginActivity.class));
+                finish();
+                return;
+            }
+
             BookingDAO bookingDAO = new BookingDAO(this);
 
+            String specialRequest = "";
+            if (edtSpecialRequest.getText() != null) {
+                specialRequest = edtSpecialRequest.getText().toString().trim();
+            }
+
             int bookingId = bookingDAO.createBooking(
-                    1,
+                    userId,
                     roomTypeId,
                     safe(checkInDate, getTodayPlusDays(0)),
                     safe(checkOutDate, getTodayPlusDays(2)),
                     guestCount,
                     numberOfRooms,
-                    tvSpecialRequest.getText().toString().trim()
+                    specialRequest
             );
 
             if (bookingId <= 0) {
@@ -153,15 +167,24 @@ public class BookingActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Đã xác nhận booking", Toast.LENGTH_SHORT).show();
 
-            Intent intent = new Intent(BookingActivity.this, BookingServicesActivity.class);
-            intent.putExtra("booking_id", bookingId);
-            startActivity(intent);
-            finish();
+            try {
+                Intent intent = new Intent(BookingActivity.this, BookingServicesActivity.class);
+                intent.putExtra("booking_id", bookingId);
+                startActivity(intent);
+                finish();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Không mở được trang dịch vụ", Toast.LENGTH_LONG).show();
+            }
         });
     }
 
     private String safe(String value, String fallback) {
         return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private String calculateNightsText(String checkIn, String checkOut) {

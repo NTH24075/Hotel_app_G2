@@ -399,6 +399,10 @@ public class BookingDAO {
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_SPECIAL_REQUEST, specialRequest);
 
             long bookingIdLong = db.insert(DatabaseContract.BookingsTable.TABLE_NAME, null, bookingValues);
+            if (bookingIdLong == -1) {
+                return -1;
+            }
+
             int bookingId = (int) bookingIdLong;
 
             ContentValues paymentValues = new ContentValues();
@@ -409,10 +413,17 @@ public class BookingDAO {
             paymentValues.putNull(DatabaseContract.PaymentsTable.COLUMN_PAID_AT);
             paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_NOTE, "Chưa thanh toán");
 
-            db.insert(DatabaseContract.PaymentsTable.TABLE_NAME, null, paymentValues);
+            long paymentIdLong = db.insert(DatabaseContract.PaymentsTable.TABLE_NAME, null, paymentValues);
+            if (paymentIdLong == -1) {
+                return -1;
+            }
 
             db.setTransactionSuccessful();
             return bookingId;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
         } finally {
             db.endTransaction();
             db.close();
@@ -704,4 +715,92 @@ public class BookingDAO {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         return sdf.format(new Date());
     }
+    public ArrayList<Booking> getPaidDoneBookingsByUser(int userId) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        ArrayList<Booking> list = new ArrayList<>();
+
+        String sql = "SELECT b." + DatabaseContract.BookingsTable.COLUMN_ID + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_BOOKING_CODE + ", " +
+                "u." + DatabaseContract.UsersTable.COLUMN_FULL_NAME + ", " +
+                "rt." + DatabaseContract.RoomTypesTable.COLUMN_TYPE_NAME + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_CHECK_IN_DATE + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_CHECK_OUT_DATE + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS + ", " +
+                "p." + DatabaseContract.PaymentsTable.COLUMN_STATUS + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_TOTAL_AMOUNT + ", " +
+                "b." + DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID + " " +
+                "FROM " + DatabaseContract.BookingsTable.TABLE_NAME + " b " +
+                "INNER JOIN " + DatabaseContract.UsersTable.TABLE_NAME + " u " +
+                "ON b." + DatabaseContract.BookingsTable.COLUMN_USER_ID + " = u." + DatabaseContract.UsersTable.COLUMN_ID + " " +
+                "INNER JOIN " + DatabaseContract.RoomTypesTable.TABLE_NAME + " rt " +
+                "ON b." + DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID + " = rt." + DatabaseContract.RoomTypesTable.COLUMN_ID + " " +
+                "INNER JOIN " + DatabaseContract.PaymentsTable.TABLE_NAME + " p " +
+                "ON b." + DatabaseContract.BookingsTable.COLUMN_ID + " = p." + DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + " " +
+                "WHERE b." + DatabaseContract.BookingsTable.COLUMN_USER_ID + " = ? " +
+                "AND UPPER(p." + DatabaseContract.PaymentsTable.COLUMN_STATUS + ") IN ('PAID','DONE') " +
+                "ORDER BY b." + DatabaseContract.BookingsTable.COLUMN_ID + " DESC";
+
+        Cursor cursor = db.rawQuery(sql, new String[]{String.valueOf(userId)});
+
+        while (cursor.moveToNext()) {
+            Booking booking = new Booking();
+            booking.setBookingId(cursor.getInt(0));
+            booking.setBookingCode(cursor.getString(1));
+            booking.setGuestName(cursor.getString(2));
+            booking.setRoomTypeName(cursor.getString(3));
+            booking.setCheckInDate(cursor.getString(4));
+            booking.setCheckOutDate(cursor.getString(5));
+            booking.setBookingStatus(cursor.getString(6));
+            booking.setPaymentStatus(cursor.getString(7));
+            booking.setTotalAmount(cursor.getDouble(8));
+            booking.setRoomTypeId(cursor.getInt(9));
+            list.add(booking);
+        }
+
+        cursor.close();
+        db.close();
+        return list;
+    }
+    public boolean isReviewed(String bookingCode) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT 1 FROM " + DatabaseContract.ReviewsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.ReviewsTable.COLUMN_BOOKING_CODE + " = ?",
+                new String[]{bookingCode}
+        );
+
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        db.close();
+        return exists;
+    }
+
+
+    public boolean insertReview(
+            int roomTypeId,
+            String guestName,
+            String guestInitials,
+            String reviewMonth,
+            int rating,
+            String reviewContent,
+            String bookingCode
+    ) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DatabaseContract.ReviewsTable.COLUMN_ROOM_TYPE_ID, roomTypeId);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_GUEST_NAME, guestName);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_GUEST_INITIALS, guestInitials);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_REVIEW_MONTH, reviewMonth);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_RATING, rating);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_CONTENT, reviewContent);
+        values.put(DatabaseContract.ReviewsTable.COLUMN_BOOKING_CODE, bookingCode);
+
+        long result = db.insert(DatabaseContract.ReviewsTable.TABLE_NAME, null, values);
+        db.close();
+
+        return result != -1;
+    }
+
 }
