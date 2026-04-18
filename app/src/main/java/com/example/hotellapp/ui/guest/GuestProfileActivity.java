@@ -75,6 +75,20 @@ public class GuestProfileActivity extends AppCompatActivity {
             });
         }
 
+        if (btnBookingHistory != null) {
+            btnBookingHistory.setOnClickListener(v -> {
+                int userId = sessionManager.getUserId();
+                if (userId <= 0) {
+                    Toast.makeText(this, "Không tìm thấy người dùng", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Intent intent = new Intent(GuestProfileActivity.this, HistoryBookingActivity.class);
+                intent.putExtra("user_id", userId);
+                startActivity(intent);
+            });
+        }
+
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
                 sessionManager.clearSession();

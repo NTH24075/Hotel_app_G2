@@ -1,5 +1,6 @@
 package com.example.hotellapp.ui.guest;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -61,7 +62,7 @@ public class RoomDetailActivity extends AppCompatActivity {
 
         roomTypeId = getIntent().getIntExtra("ROOM_TYPE_ID", -1);
         if (roomTypeId == -1) {
-            Toast.makeText(this, "Khong tim thay thong tin phong", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Không tìm thấy thông tin phòng", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -97,9 +98,27 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private void bindActions() {
         findViewById(R.id.btn_back_detail).setOnClickListener(v -> finish());
-        findViewById(R.id.btn_book_now).setOnClickListener(v ->
-                Toast.makeText(this, "Luong dat phong se duoc noi tiep sau.", Toast.LENGTH_SHORT).show()
-        );
+
+        findViewById(R.id.btn_book_now).setOnClickListener(v -> {
+            Intent intent = new Intent(RoomDetailActivity.this, BookingActivity.class);
+
+            intent.putExtra("ROOM_TYPE_ID", roomTypeId);
+            intent.putExtra("ROOM_NAME", tvRoomName.getText().toString());
+            intent.putExtra("PRICE_TEXT", tvCurrentPrice.getText().toString());
+            intent.putExtra("TOTAL_PRICE_TEXT", tvTotalPrice.getText().toString());
+            intent.putExtra("CAPACITY_TEXT", tvCapacityValue.getText().toString());
+            intent.putExtra("BED_TEXT", tvBedValue.getText().toString());
+            intent.putExtra("AREA_TEXT", tvAreaValue.getText().toString());
+            intent.putExtra("AVAILABILITY_TEXT", tvAvailabilityLine.getText().toString());
+
+            intent.putExtra("CHECK_IN_DATE", "2026-04-17");
+            intent.putExtra("CHECK_OUT_DATE", "2026-04-19");
+            intent.putExtra("GUEST_COUNT", 2);
+            intent.putExtra("NUMBER_OF_ROOMS", 1);
+
+            startActivity(intent);
+        });
+
         tvReadMore.setOnClickListener(v -> toggleDescription());
     }
 
@@ -113,7 +132,7 @@ public class RoomDetailActivity extends AppCompatActivity {
             runSafeSection(() -> loadFloorStatuses(db));
             runSafeSection(() -> loadReviews(db));
         } catch (Exception exception) {
-            Toast.makeText(this, "Khong the tai chi tiet phong", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Không thể tải chi tiết phòng", Toast.LENGTH_SHORT).show();
             finish();
         } finally {
             db.close();
@@ -148,9 +167,9 @@ public class RoomDetailActivity extends AppCompatActivity {
             int starRating = cursor.getInt(1);
             String checkInTime = safeText(cursor.getString(2), "14:00");
             String checkOutTime = safeText(cursor.getString(3), "12:00");
-            String roomName = safeText(cursor.getString(4), "Phong");
-            fullDescription = safeText(cursor.getString(5), "Phong hien dai, day du tien nghi.");
-            String bedType = safeText(cursor.getString(6), "1 doi");
+            String roomName = safeText(cursor.getString(4), "Phòng");
+            fullDescription = safeText(cursor.getString(5), "Phòng hiện đại, đầy đủ tiện nghi.");
+            String bedType = safeText(cursor.getString(6), "1 giường đôi");
             double sizeSqm = cursor.isNull(7) ? 0 : cursor.getDouble(7);
             int capacity = cursor.getInt(8);
             double pricePerNight = cursor.getDouble(9);
@@ -161,17 +180,20 @@ public class RoomDetailActivity extends AppCompatActivity {
             double oldPrice = pricePerNight / 0.85d;
             double totalPrice = pricePerNight * 2;
 
-            tvHeaderTitle.setText("Chi tiet phong");
-            tvRoomName.setText("Phong " + roomName);
+            tvHeaderTitle.setText("Chi tiết phòng");
+            tvRoomName.setText("Phòng " + roomName);
             tvHotelChip.setText(hotelName + " · " + starRating + "★");
-            tvAvailabilityChip.setText("Con " + availableCount + " phong");
-            tvDealChip.setText("Dat truc tiep -15%");
+            tvAvailabilityChip.setText("Còn " + availableCount + " phòng");
+            tvDealChip.setText("Đặt trực tiếp -15%");
             tvScore.setText("9.2");
             tvAreaValue.setText(formatNumber(sizeSqm) + " m²");
             tvBedValue.setText(bedType);
-            tvCapacityValue.setText(capacity + " nguoi");
-            tvFloorValue.setText("Tang " + floorNumber);
-            tvAvailabilityLine.setText(availableCount + " phong trong · Nhan phong " + checkInTime + " · Tra phong " + checkOutTime + " · 17/04 → 19/04");
+            tvCapacityValue.setText(capacity + " người");
+            tvFloorValue.setText("Tầng " + floorNumber);
+            tvAvailabilityLine.setText(
+                    availableCount + " phòng trống · Nhận phòng " + checkInTime +
+                            " · Trả phòng " + checkOutTime + " · 17/04 → 19/04"
+            );
 
             tvDescription.setText(fullDescription);
             tvDescription.setMaxLines(3);
@@ -179,13 +201,14 @@ public class RoomDetailActivity extends AppCompatActivity {
 
             tvOldPrice.setText(money.format(Math.round(oldPrice)) + " đ");
             tvCurrentPrice.setText(money.format(Math.round(pricePerNight)) + " đ");
-            tvTotalPrice.setText("Tong 2 dem: " + money.format(Math.round(totalPrice)) + " đ · Da gom VAT");
+            tvTotalPrice.setText("Tổng 2 đêm: " + money.format(Math.round(totalPrice)) + " đ · Đã gồm VAT");
         }
     }
 
     private void loadAmenities(SQLiteDatabase db) {
         amenityContainer.removeAllViews();
         String query = "SELECT Amenities FROM RoomTypes WHERE RoomTypeId = ?";
+
         try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
             if (!cursor.moveToFirst()) {
                 return;
@@ -204,6 +227,7 @@ public class RoomDetailActivity extends AppCompatActivity {
     private void loadServices(SQLiteDatabase db) {
         serviceContainer.removeAllViews();
         String query = "SELECT ServiceName, Price, UnitLabel, IconGlyph FROM Services WHERE IsActive = 1 ORDER BY ServiceId";
+
         try (Cursor cursor = db.rawQuery(query, null)) {
             while (cursor.moveToNext()) {
                 serviceContainer.addView(createServiceCard(
@@ -219,6 +243,7 @@ public class RoomDetailActivity extends AppCompatActivity {
     private void loadFloorStatuses(SQLiteDatabase db) {
         floorRoomContainer.removeAllViews();
         String query = "SELECT RoomNumber, RoomStatus FROM Rooms WHERE RoomTypeId = ? AND IsActive = 1 ORDER BY RoomNumber";
+
         try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
             while (cursor.moveToNext()) {
                 floorRoomContainer.addView(createRoomPill(cursor.getString(0), cursor.getString(1)));
@@ -228,16 +253,23 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private void loadReviews(SQLiteDatabase db) {
         reviewContainer.removeAllViews();
-        String query = "SELECT GuestName, GuestInitials, ReviewMonth, Rating, ReviewContent, BookingCode FROM Reviews WHERE RoomTypeId = ? ORDER BY ReviewId DESC";
+
+        String query =
+                "SELECT " +
+                        DatabaseContract.ReviewsTable.COLUMN_GUEST_NAME + ", " +
+                        DatabaseContract.ReviewsTable.COLUMN_RATING + ", " +
+                        DatabaseContract.ReviewsTable.COLUMN_CONTENT + " " +
+                        "FROM " + DatabaseContract.ReviewsTable.TABLE_NAME + " " +
+                        "WHERE " + DatabaseContract.ReviewsTable.COLUMN_ROOM_TYPE_ID + " = ? " +
+                        "ORDER BY " + DatabaseContract.ReviewsTable.COLUMN_ID + " DESC " +
+                        "LIMIT 5";
+
         try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
             while (cursor.moveToNext()) {
                 reviewContainer.addView(createReviewCard(
                         cursor.getString(0),
-                        cursor.getString(1),
-                        cursor.getString(2),
-                        cursor.getInt(3),
-                        cursor.getString(4),
-                        cursor.getString(5)
+                        cursor.getInt(1),
+                        cursor.getString(2)
                 ));
             }
         }
@@ -246,7 +278,7 @@ public class RoomDetailActivity extends AppCompatActivity {
     private void toggleDescription() {
         expandedDescription = !expandedDescription;
         tvDescription.setMaxLines(expandedDescription ? Integer.MAX_VALUE : 3);
-        tvReadMore.setText(expandedDescription ? "Thu gon ↑" : "Doc them →");
+        tvReadMore.setText(expandedDescription ? "Thu gọn ↑" : "Đọc thêm →");
     }
 
     private View createAmenityCard(String text) {
@@ -269,7 +301,10 @@ public class RoomDetailActivity extends AppCompatActivity {
         dot.setBackgroundColor(ContextCompat.getColor(this, R.color.accent_gold));
 
         TextView label = new TextView(this);
-        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         labelParams.setMargins(dp(8), 0, 0, 0);
         label.setLayoutParams(labelParams);
         label.setText(text);
@@ -329,7 +364,10 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private View createRoomPill(String roomNumber, String status) {
         TextView pill = new TextView(this);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         params.setMargins(0, 0, dp(6), dp(6));
         pill.setLayoutParams(params);
         pill.setPadding(dp(10), dp(5), dp(10), dp(5));
@@ -353,9 +391,12 @@ public class RoomDetailActivity extends AppCompatActivity {
         return pill;
     }
 
-    private View createReviewCard(String guestName, String initials, String month, int rating, String content, String bookingCode) {
+    private View createReviewCard(String guestName, int rating, String content) {
         CardView card = new CardView(this);
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
         cardParams.setMargins(0, 0, 0, dp(8));
         card.setLayoutParams(cardParams);
         card.setRadius(dp(14));
@@ -366,67 +407,40 @@ public class RoomDetailActivity extends AppCompatActivity {
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(12), dp(12), dp(12), dp(12));
 
-        LinearLayout top = new LinearLayout(this);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-        top.setGravity(Gravity.CENTER_VERTICAL);
+        // Dòng 1: tên guest
+        TextView nameView = new TextView(this);
+        nameView.setText(safeText(guestName, "Khách hàng"));
+        nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        nameView.setTypeface(Typeface.DEFAULT_BOLD);
+        nameView.setTextColor(ContextCompat.getColor(this, R.color.text_black));
+        body.addView(nameView);
 
-        TextView avatar = new TextView(this);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(31), dp(31));
-        avatar.setLayoutParams(avatarParams);
-        avatar.setGravity(Gravity.CENTER);
-        avatar.setText(initials);
-        avatar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        avatar.setTypeface(Typeface.DEFAULT_BOLD);
-        avatar.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
-        avatar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_dark));
-        top.addView(avatar);
+        // Dòng 2: sao
+        TextView starView = new TextView(this);
+        LinearLayout.LayoutParams starParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        starParams.setMargins(0, dp(4), 0, 0);
+        starView.setLayoutParams(starParams);
+        starView.setText(buildStars(rating));
+        starView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        starView.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
+        body.addView(starView);
 
-        LinearLayout info = new LinearLayout(this);
-        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        infoParams.setMargins(dp(8), 0, 0, 0);
-        info.setLayoutParams(infoParams);
-        info.setOrientation(LinearLayout.VERTICAL);
-
-        TextView name = new TextView(this);
-        name.setText(guestName);
-        name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        name.setTypeface(Typeface.DEFAULT_BOLD);
-        name.setTextColor(ContextCompat.getColor(this, R.color.text_black));
-        info.addView(name);
-
-        TextView date = new TextView(this);
-        date.setText(month);
-        date.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        date.setTextColor(Color.parseColor("#BBBBBB"));
-        info.addView(date);
-        top.addView(info);
-
-        TextView stars = new TextView(this);
-        stars.setText(buildStars(rating));
-        stars.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        stars.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
-        top.addView(stars);
-
-        body.addView(top);
-
-        TextView reviewText = new TextView(this);
-        LinearLayout.LayoutParams reviewParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        reviewParams.setMargins(0, dp(7), 0, 0);
-        reviewText.setLayoutParams(reviewParams);
-        reviewText.setText(content);
-        reviewText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        reviewText.setLineSpacing(0, 1.4f);
-        reviewText.setTextColor(Color.parseColor("#555555"));
-        body.addView(reviewText);
-
-        TextView booking = new TextView(this);
-        LinearLayout.LayoutParams bookingParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        bookingParams.setMargins(0, dp(4), 0, 0);
-        booking.setLayoutParams(bookingParams);
-        booking.setText("Booking da xac nhan · " + bookingCode);
-        booking.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
-        booking.setTextColor(Color.parseColor("#BBBBBB"));
-        body.addView(booking);
+        // Dòng 3: comment
+        TextView commentView = new TextView(this);
+        LinearLayout.LayoutParams commentParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        commentParams.setMargins(0, dp(6), 0, 0);
+        commentView.setLayoutParams(commentParams);
+        commentView.setText(safeText(content, "Không có nội dung đánh giá."));
+        commentView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        commentView.setTextColor(Color.parseColor("#555555"));
+        commentView.setLineSpacing(0, 1.3f);
+        body.addView(commentView);
 
         card.addView(body);
         return card;
@@ -434,12 +448,8 @@ public class RoomDetailActivity extends AppCompatActivity {
 
     private String buildStars(int rating) {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < rating; i++) {
-            builder.append("★");
-        }
-        for (int i = rating; i < 5; i++) {
-            builder.append("☆");
-        }
+        for (int i = 0; i < rating; i++) builder.append("★");
+        for (int i = rating; i < 5; i++) builder.append("☆");
         return builder.toString();
     }
 

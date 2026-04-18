@@ -82,7 +82,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")"
         );
 
-        //booking
         db.execSQL(
                 "CREATE TABLE " + DatabaseContract.UsersTable.TABLE_NAME + " (" +
                         DatabaseContract.UsersTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
@@ -134,7 +133,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + " INTEGER NOT NULL UNIQUE, " +
                         DatabaseContract.PaymentsTable.COLUMN_AMOUNT + " REAL NOT NULL, " +
                         DatabaseContract.PaymentsTable.COLUMN_METHOD + " TEXT NOT NULL, " +
-                        DatabaseContract.PaymentsTable.COLUMN_STATUS + " TEXT NOT NULL, " +
+                        DatabaseContract.PaymentsTable.COLUMN_STATUS + " TEXT NOT NULL DEFAULT '" + DatabaseContract.PaymentsTable.STATUS_UNPAID + "', " +
                         DatabaseContract.PaymentsTable.COLUMN_PAID_AT + " TEXT, " +
                         DatabaseContract.PaymentsTable.COLUMN_NOTE + " TEXT, " +
                         "FOREIGN KEY(" + DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + ") REFERENCES " +
@@ -162,27 +161,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         seedRoomTypes(db);
         seedRooms(db);
         seedUsers(db);
+        seedServices(db);
         seedBookings(db);
         seedBookingRoomAssignments(db);
         seedPayments(db);
-        seedServices(db);
         seedReviews(db);
         seedBookingServices(db);
-
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingServicesTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.PaymentsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingsTable.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.UsersTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.ReviewsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.ServicesTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.RoomsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.RoomTypesTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.UsersTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.HotelTable.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingServicesTable.TABLE_NAME);
         onCreate(db);
     }
 
@@ -191,20 +189,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void seedRoomTypes(SQLiteDatabase db) {
-        // Standard variants
         db.execSQL("INSERT INTO RoomTypes VALUES (1,'Standard Single','Phòng tiêu chuẩn đơn, đầy đủ tiện nghi cơ bản.',1,'1 giường đơn',20,600000,'WiFi miễn phí, TV 32 inch, Điều hòa, Minibar','https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=600',1)");
         db.execSQL("INSERT INTO RoomTypes VALUES (2,'Standard Double','Phòng tiêu chuẩn đôi cho cặp đôi.',2,'1 giường đôi',25,800000,'WiFi miễn phí, TV 40 inch, Điều hòa, Minibar','https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600',1)");
-        
-        // Deluxe variants
         db.execSQL("INSERT INTO RoomTypes VALUES (3,'Deluxe City View','Phòng Deluxe hướng thành phố hiện đại.',2,'1 giường đôi lớn',35,1500000,'WiFi miễn phí, TV 4K, Bồn tắm, View thành phố','https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600',1)");
         db.execSQL("INSERT INTO RoomTypes VALUES (4,'Deluxe Garden View','Không gian xanh mát hướng ra khu vườn.',2,'1 giường đôi lớn',38,1600000,'WiFi miễn phí, TV 4K, Bồn tắm, View vườn','https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600',1)");
         db.execSQL("INSERT INTO RoomTypes VALUES (5,'Deluxe Twin','Phòng 2 giường đơn tiện lợi.',2,'2 giường đơn',38,1700000,'WiFi miễn phí, TV 4K, 2 giường đơn','https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600',1)");
-        
-        // Suite variants
         db.execSQL("INSERT INTO RoomTypes VALUES (6,'Junior Suite','Phòng Suite nhỏ với khu vực tiếp khách.',3,'1 giường đôi lớn + 1 sofa',50,2800000,'WiFi miễn phí, Sofa, Bồn tắm massage','https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600',1)");
         db.execSQL("INSERT INTO RoomTypes VALUES (7,'Executive Suite','Suite cao cấp tầng cao nhất.',4,'2 giường đôi lớn',75,4500000,'WiFi fiber, Phòng khách riêng, Jacuzzi','https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600',1)");
-        
-        // Premium variants
         db.execSQL("INSERT INTO RoomTypes VALUES (8,'Studio Apartment','Phòng dạng căn hộ có bếp nhỏ.',2,'1 giường đôi lớn',45,2200000,'WiFi, Bếp, Tủ lạnh lớn, Máy giặt','https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600',1)");
         db.execSQL("INSERT INTO RoomTypes VALUES (9,'Presidential Suite','Căn hộ Tổng thống xa hoa bậc nhất.',4,'2 giường King size',150,15000000,'Quản gia 24/7, Hồ bơi riêng, View 360 độ','https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600',1)");
     }
@@ -216,13 +207,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String status;
 
                 if (j == 1 || j == 2) {
-                    status = "Available";
+                    status = DatabaseContract.RoomsTable.STATUS_AVAILABLE;
                 } else if (j == 3) {
-                    status = "Occupied";
+                    status = DatabaseContract.RoomsTable.STATUS_OCCUPIED;
                 } else if (j == 4) {
-                    status = "Cleaning";
+                    status = DatabaseContract.RoomsTable.STATUS_CLEANING;
                 } else {
-                    status = "Maintenance";
+                    status = DatabaseContract.RoomsTable.STATUS_MAINTENANCE;
                 }
 
                 db.execSQL("INSERT INTO Rooms (RoomTypeId, RoomNumber, FloorNumber, RoomStatus, IsActive) " +
@@ -248,20 +239,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO Reviews VALUES (3,7,'Trần Minh Anh','TA','Tháng 3/2026',5,'Suite rất đáng tiền, không gian yên tĩnh và jacuzzi hoạt động tốt.','BK20260322007')");
     }
 
-    //booking
     private void seedUsers(SQLiteDatabase db) {
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(1,'Lê Văn Khách','Le Van Khach','khach1@gmail.com','0901000003')");
 
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(2,'Phạm Thị Hoa','Pham Thi Hoa','hoa@gmail.com','0901000004')");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(3,'Nguyễn Văn Guest','Nguyen Van Guest','guest@gmail.com','0987654321')");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(4,'Kiên Nhân','Kien Nhan','nhan@gmail.com','0977000000')");
     }
+
     private void seedBookings(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
                 "(1,1,2,'BK20260501001','2026-05-10','2026-05-12',2,1,1600000,'" +
@@ -281,12 +262,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
                 "(5,3,9,'BK20260501005','2026-05-15','2026-05-18',2,1,45000000,'" +
-                DatabaseContract.BookingsTable.STATUS_CONFIRMED + "','Trang trí phòng dịp sinh nhật')");
+                DatabaseContract.BookingsTable.STATUS_PENDING + "','Trang trí phòng dịp sinh nhật')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
                 "(6,4,5,'BK20260501006','2026-05-25','2026-05-27',2,2,6800000,'" +
                 DatabaseContract.BookingsTable.STATUS_PENDING + "',NULL)");
     }
+
     private void seedBookingRoomAssignments(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
                 "(1,1,201,'2026-05-10 13:00:00',NULL,'Phòng đã cấp cho khách')");
@@ -296,16 +278,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
                 "(3,4,202,'2026-04-01 12:00:00','2026-04-03 11:30:00','Booking đã check-out')");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
-                "(4,5,901,'2026-05-15 13:00:00',NULL,'Giữ phòng cho khách')");
     }
+
     private void seedPayments(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
                 "(1,1,1600000,'BankTransfer','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-04-20 10:30:00','Thanh toán online')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
-                "(2,2,4500000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PENDING + "',NULL,NULL)");
+                "(2,2,4500000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_UNPAID + "',NULL,NULL)");
 
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
                 "(3,3,5000000,'MoMo','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-05-05 14:00:00','Thanh toán qua MoMo')");
@@ -314,11 +294,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "(4,4,1600000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-04-01 13:00:00',NULL)");
 
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
-                "(5,5,45000000,'BankTransfer','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-05-01 09:00:00','Đặt phòng dịp sinh nhật')");
+                "(5,5,45000000,'BankTransfer','" + DatabaseContract.PaymentsTable.STATUS_UNPAID + "',NULL,'Chưa thanh toán')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
-                "(6,6,6800000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PENDING + "',NULL,NULL)");
+                "(6,6,6800000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_UNPAID + "',NULL,NULL)");
     }
+
     private void seedBookingServices(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingServicesTable.TABLE_NAME + " VALUES " +
                 "(1,3,1,2,150000,'2026-05-05 08:00:00','Ăn sáng cho 2 người')");
@@ -326,5 +307,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingServicesTable.TABLE_NAME + " VALUES " +
                 "(2,3,3,1,350000,'2026-05-05 14:00:00','Đón sân bay')");
     }
-
 }

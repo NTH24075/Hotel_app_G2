@@ -28,6 +28,13 @@
         <activity android:name=".ui.guest.RoomDetailActivity" />
         <activity android:name=".ui.guest.GuestUpdateInfor" />
         <activity android:name=".ui.guest.GuestChangPassword" />
+        <activity android:name=".ui.guest.BookingActivity" />
+        <activity android:name=".ui.guest.BookingServicesActivity" />
+        <activity android:name=".ui.guest.PaymentActivity" />
+        <activity android:name=".ui.guest.HistoryBookingActivity" />
+        <activity android:name=".ui.guest.ReviewActivity" />
+
+
 
         <!-- Auth -->
         <activity
