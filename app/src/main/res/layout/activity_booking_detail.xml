@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FB">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="20dp">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:background="@drawable/bg_header"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Booking Detail"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="Thông tin chi tiết booking"
+                android:textColor="#D6E4FF"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Card detail -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="14dp"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_booking_card">
+
+            <TextView
+                android:id="@+id/txtDetailBookingCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BK20260501001"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="#0F172A" />
+
+            <TextView
+                android:id="@+id/txtDetailGuestName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Khách: Lê Văn Khách"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailRoomType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Loại phòng: Deluxe"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailCheckIn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Ngày nhận phòng: 2026-05-10"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailCheckOut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Ngày trả phòng: 2026-05-12"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailGuestCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Số khách: 2"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailNumberOfRooms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Số phòng: 1"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+
+            <TextView
+                android:id="@+id/txtDetailTotalAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tổng tiền: 1,600,000 VNĐ"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="#0F172A" />
+
+            <TextView
+                android:id="@+id/txtDetailSpecialRequest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Yêu cầu đặc biệt: Cần thêm gối"
+                android:textSize="15sp"
+                android:textColor="#334155" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="12dp"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_booking_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dịch vụ đã thêm"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:textColor="#0F172A" />
+
+            <TextView
+                android:id="@+id/txtNoService"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Chưa có dịch vụ nào được thêm"
+                android:textSize="14sp"
+                android:textColor="#64748B" />
+
+            <ListView
+                android:id="@+id/lvBookingServices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="4dp"
+                android:nestedScrollingEnabled="true" />
+        </LinearLayout>
+        <!-- Status card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="12dp"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_booking_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Trạng thái"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:textColor="#0F172A" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Trạng thái booking"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#475569" />
+
+            <TextView
+                android:id="@+id/txtDetailBookingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Pending"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:textColor="#B45309"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:background="@drawable/bg_status_orange" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Trạng thái thanh toán"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#475569" />
+
+            <TextView
+                android:id="@+id/txtDetailPaymentStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Pending"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:textColor="#B45309"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:background="@drawable/bg_status_orange" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="12dp"
+            android:padding="16dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_booking_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Thao tác lễ tân"
+                android:textStyle="bold"
+                android:textSize="17sp"
+                android:textColor="#0F172A" />
+
+            <Button
+                android:id="@+id/btnConfirmBooking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Xác nhận booking" />
+
+            <Button
+                android:id="@+id/btnCheckIn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Check-in" />
+
+            <Button
+                android:id="@+id/btnAddService"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Thêm dịch vụ" />
+
+            <Button
+                android:id="@+id/btnCheckOut"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Check-out" />
+
+            <Button
+                android:id="@+id/btnBackToList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Quay lại danh sách" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

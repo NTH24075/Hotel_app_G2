@@ -11,9 +11,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Hotel_app_G2">
+        <activity android:name=".ui.receptionist.BookingDetailActivity" />
+        <activity android:name=".ui.receptionist.ReceptionistBookingActivity" />
+        <activity android:name=".ui.receptionist.RoomStatusActivity" />
 
         <activity
-            android:name="com.example.hotellapp.ui.receptionist.ReceptionistBookingActivity"
+            android:name="com.example.hotellapp.ui.receptionist.ReceptionistMainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +27,6 @@
         <activity android:name="com.example.hotellapp.ui.guest.SearchResultsActivity" />
         <activity android:name="com.example.hotellapp.ui.guest.RoomDetailActivity" />
         <activity android:name="com.example.hotellapp.ui.auth.LoginActivity" />
-        <activity android:name="com.example.hotellapp.ui.receptionist.ReceptionistMainActivity" />
         <activity android:name="com.example.hotellapp.ui.admin.AdminMainActivity" />
 
     </application>

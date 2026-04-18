@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="18dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Thêm dịch vụ"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="#0F172A" />
+
+    <Spinner
+        android:id="@+id/spService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp" />
+
+    <TextView
+        android:id="@+id/txtDialogServicePrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Giá: 0"
+        android:textStyle="bold"
+        android:textColor="#1D4ED8"
+        android:textSize="15sp" />
+
+    <EditText
+        android:id="@+id/edtServiceQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:hint="Nhập số lượng"
+        android:inputType="number"
+        android:text="1" />
+
+    <TextView
+        android:id="@+id/txtDialogServiceTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="Thành tiền: 0"
+        android:textStyle="bold"
+        android:textColor="#15803D"
+        android:textSize="15sp" />
+
+</LinearLayout>

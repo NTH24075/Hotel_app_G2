@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_service_item">
+
+    <TextView
+        android:id="@+id/txtServiceIcon"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:gravity="center"
+        android:text="🍳"
+        android:textSize="22sp"
+        android:background="@drawable/bg_service_icon" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtServiceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ăn sáng buffet"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:textColor="#0F172A" />
+
+        <TextView
+            android:id="@+id/txtServiceUnitPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="150000 / người / lần"
+            android:textSize="13sp"
+            android:textColor="#64748B" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/txtServiceQty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="x2"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="#1D4ED8" />
+
+        <TextView
+            android:id="@+id/txtServiceTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="300000"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="#15803D" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -87,6 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "CREATE TABLE " + DatabaseContract.UsersTable.TABLE_NAME + " (" +
                         DatabaseContract.UsersTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
                         DatabaseContract.UsersTable.COLUMN_FULL_NAME + " TEXT NOT NULL, " +
+                        DatabaseContract.UsersTable.COLUMN_FULL_NAME_UNSIGNED + " TEXT NOT NULL, " +
                         DatabaseContract.UsersTable.COLUMN_EMAIL + " TEXT, " +
                         DatabaseContract.UsersTable.COLUMN_PHONE + " TEXT" +
                         ")"
@@ -141,6 +142,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")"
         );
 
+        db.execSQL(
+                "CREATE TABLE " + DatabaseContract.BookingServicesTable.TABLE_NAME + " (" +
+                        DatabaseContract.BookingServicesTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_BOOKING_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_SERVICE_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_QUANTITY + " INTEGER NOT NULL DEFAULT 1, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_UNIT_PRICE + " REAL NOT NULL, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_USED_AT + " TEXT, " +
+                        DatabaseContract.BookingServicesTable.COLUMN_NOTE + " TEXT, " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingServicesTable.COLUMN_BOOKING_ID + ") REFERENCES " +
+                        DatabaseContract.BookingsTable.TABLE_NAME + "(" + DatabaseContract.BookingsTable.COLUMN_ID + "), " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingServicesTable.COLUMN_SERVICE_ID + ") REFERENCES " +
+                        DatabaseContract.ServicesTable.TABLE_NAME + "(" + DatabaseContract.ServicesTable.COLUMN_ID + ")" +
+                        ")"
+        );
+
         seedHotel(db);
         seedRoomTypes(db);
         seedRooms(db);
@@ -150,6 +167,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         seedPayments(db);
         seedServices(db);
         seedReviews(db);
+        seedBookingServices(db);
 
     }
 
@@ -164,6 +182,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.RoomsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.RoomTypesTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.HotelTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingServicesTable.TABLE_NAME);
         onCreate(db);
     }
 
@@ -191,12 +210,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void seedRooms(SQLiteDatabase db) {
-        // Nạp nhiều phòng vật lý cho mỗi loại để tìm kiếm luôn có kết quả
         for (int i = 1; i <= 9; i++) {
             for (int j = 1; j <= 5; j++) {
                 int roomNum = i * 100 + j;
+                String status;
+
+                if (j == 1 || j == 2) {
+                    status = "Available";
+                } else if (j == 3) {
+                    status = "Occupied";
+                } else if (j == 4) {
+                    status = "Cleaning";
+                } else {
+                    status = "Maintenance";
+                }
+
                 db.execSQL("INSERT INTO Rooms (RoomTypeId, RoomNumber, FloorNumber, RoomStatus, IsActive) " +
-                        "VALUES (" + i + ", '" + roomNum + "', " + i + ", 'Available', 1)");
+                        "VALUES (" + i + ", '" + roomNum + "', " + i + ", '" + status + "', 1)");
             }
         }
     }
@@ -221,16 +251,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     //booking
     private void seedUsers(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(1,'Lê Văn Khách','khach1@gmail.com','0901000003')");
+                "(1,'Lê Văn Khách','Le Van Khach','khach1@gmail.com','0901000003')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(2,'Phạm Thị Hoa','hoa@gmail.com','0901000004')");
+                "(2,'Phạm Thị Hoa','Pham Thi Hoa','hoa@gmail.com','0901000004')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(3,'Nguyễn Văn Guest','guest@gmail.com','0987654321')");
+                "(3,'Nguyễn Văn Guest','Nguyen Van Guest','guest@gmail.com','0987654321')");
 
         db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
-                "(4,'Kiên Nhân','nhan@gmail.com','0977000000')");
+                "(4,'Kiên Nhân','Kien Nhan','nhan@gmail.com','0977000000')");
     }
     private void seedBookings(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
@@ -289,4 +319,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
                 "(6,6,6800000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PENDING + "',NULL,NULL)");
     }
+    private void seedBookingServices(SQLiteDatabase db) {
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingServicesTable.TABLE_NAME + " VALUES " +
+                "(1,3,1,2,150000,'2026-05-05 08:00:00','Ăn sáng cho 2 người')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingServicesTable.TABLE_NAME + " VALUES " +
+                "(2,3,3,1,350000,'2026-05-05 14:00:00','Đón sân bay')");
+    }
+
 }

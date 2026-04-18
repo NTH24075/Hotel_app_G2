@@ -9,20 +9,12 @@ public class Booking {
     private String checkOutDate;
     private String bookingStatus;
     private String paymentStatus;
+    private int guestCount;
+    private int numberOfRooms;
+    private double totalAmount;
+    private String specialRequest;
 
     public Booking() {
-    }
-
-    public Booking(int bookingId, String bookingCode, String guestName, String roomTypeName,
-                   String checkInDate, String checkOutDate, String bookingStatus, String paymentStatus) {
-        this.bookingId = bookingId;
-        this.bookingCode = bookingCode;
-        this.guestName = guestName;
-        this.roomTypeName = roomTypeName;
-        this.checkInDate = checkInDate;
-        this.checkOutDate = checkOutDate;
-        this.bookingStatus = bookingStatus;
-        this.paymentStatus = paymentStatus;
     }
 
     public int getBookingId() {
@@ -87,5 +79,37 @@ public class Booking {
 
     public void setPaymentStatus(String paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public int getGuestCount() {
+        return guestCount;
+    }
+
+    public void setGuestCount(int guestCount) {
+        this.guestCount = guestCount;
+    }
+
+    public int getNumberOfRooms() {
+        return numberOfRooms;
+    }
+
+    public void setNumberOfRooms(int numberOfRooms) {
+        this.numberOfRooms = numberOfRooms;
+    }
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public String getSpecialRequest() {
+        return specialRequest;
+    }
+
+    public void setSpecialRequest(String specialRequest) {
+        this.specialRequest = specialRequest;
     }
 }

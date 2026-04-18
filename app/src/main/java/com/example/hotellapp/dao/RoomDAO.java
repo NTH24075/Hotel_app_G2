@@ -95,4 +95,55 @@ public class RoomDAO {
         }
         return all;
     }
+    public List<Room> getRoomsByStatus(String status) {
+        List<Room> rooms = new ArrayList<>();
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        String query =
+                "SELECT r.RoomId, r.RoomTypeId, r.RoomNumber, r.FloorNumber, r.RoomStatus, " +
+                        "rt.TypeName, rt.BedType, rt.PricePerNight, rt.SizeSqm, rt.Capacity, rt.Amenities, rt.ThumbnailUrl " +
+                        "FROM Rooms r " +
+                        "JOIN RoomTypes rt ON r.RoomTypeId = rt.RoomTypeId " +
+                        "WHERE r.IsActive = 1 AND rt.IsActive = 1 AND r.RoomStatus = ? " +
+                        "ORDER BY r.RoomNumber ASC";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{status})) {
+            while (cursor != null && cursor.moveToNext()) {
+                rooms.add(new Room(
+                        cursor.getInt(0),
+                        cursor.getInt(1),
+                        cursor.getString(2),
+                        cursor.getInt(3),
+                        cursor.getString(4),
+                        cursor.getString(5),
+                        cursor.getString(6),
+                        cursor.getDouble(7),
+                        cursor.getDouble(8),
+                        cursor.getInt(9),
+                        cursor.getString(10),
+                        cursor.getString(11)
+                ));
+            }
+        } catch (Exception e) {
+            Log.e("RoomDAO", "Lỗi lấy phòng theo trạng thái", e);
+        }
+
+        return rooms;
+    }
+    public int countRoomsByStatus(String status) {
+        int count = 0;
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+
+        String query = "SELECT COUNT(*) FROM Rooms WHERE IsActive = 1 AND RoomStatus = ?";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{status})) {
+            if (cursor != null && cursor.moveToFirst()) {
+                count = cursor.getInt(0);
+            }
+        } catch (Exception e) {
+            Log.e("RoomDAO", "Lỗi đếm phòng theo trạng thái", e);
+        }
+
+        return count;
+    }
 }

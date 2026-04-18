@@ -58,7 +58,7 @@ public class BookingAdapter extends BaseAdapter {
         txtBookingCode.setText(booking.getBookingCode());
         txtGuestName.setText(booking.getGuestName());
         txtRoomType.setText("Loại phòng: " + booking.getRoomTypeName());
-        txtDate.setText("Ngày ở: " + booking.getCheckInDate() + " → " + booking.getCheckOutDate());
+        txtDate.setText("Ngày ở: " + booking.getCheckInDate() + "  →  " + booking.getCheckOutDate());
         txtBookingStatus.setText(booking.getBookingStatus());
         txtPaymentStatus.setText(booking.getPaymentStatus());
 
