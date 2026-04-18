@@ -1,3 +1,86 @@
 <resources>
+    <string name="app_name">Hotel_app_G2</string>
 
+    <string name="guest_hotel_name">Grand Palace Hotel</string>
+    <string name="guest_hotel_tagline">BOUTIQUE HOTEL</string>
+    <string name="guest_direct_booking_badge">ĐẶT PHÒNG TRỰC TIẾP • ƯU ĐÃI TỐT NHẤT</string>
+    <string name="guest_hero_title">Kỳ nghỉ hoàn hảo\ntại Grand Palace Hotel</string>
+    <string name="guest_rating_value">4.9★</string>
+    <string name="guest_rating_label">Đánh giá</string>
+    <string name="guest_room_type_count">6</string>
+    <string name="guest_room_type_label">Loại phòng</string>
+    <string name="guest_support_value">24/7</string>
+    <string name="guest_support_label">Hỗ trợ</string>
+
+    <string name="guest_quick_booking_title">Đặt phòng nhanh</string>
+    <string name="guest_mobile_priority">Ưu tiên mobile</string>
+    <string name="guest_room_type_label_upper">LOẠI PHÒNG</string>
+    <string name="guest_default_room_type">Deluxe</string>
+    <string name="guest_check_in_label">NHẬN PHÒNG</string>
+    <string name="guest_check_in_day">17/04</string>
+    <string name="guest_check_in_year">2026</string>
+    <string name="guest_check_out_label">TRẢ PHÒNG</string>
+    <string name="guest_check_out_day">19/04</string>
+    <string name="guest_check_out_year">2026</string>
+    <string name="guest_adults_label">NGƯỜI LỚN</string>
+    <string name="guest_adults_value">2 người</string>
+    <string name="guest_children_label">TRẺ EM</string>
+    <string name="guest_children_value">0 trẻ em</string>
+    <string name="guest_check_availability">Kiểm tra phòng trống</string>
+
+    <string name="guest_deal_title">Đặt trực tiếp • Giảm 15%</string>
+    <string name="guest_deal_subtitle">Kèm bữa sáng miễn phí cho 2 người</string>
+    <string name="guest_use_now">Dùng ngay</string>
+
+    <string name="guest_rooms_section_title">Phòng của chúng tôi</string>
+    <string name="guest_view_all">Xem tất cả →</string>
+    <string name="guest_filter_all">Tất cả</string>
+    <string name="guest_filter_standard">Standard</string>
+    <string name="guest_filter_deluxe">Deluxe</string>
+    <string name="guest_filter_suite">Suite</string>
+    <string name="guest_amenities_title">Tiện ích</string>
+
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_booking">Đặt phòng</string>
+    <string name="nav_favorite">Yêu thích</string>
+    <string name="nav_account">Tài khoản</string>
+    <string name="navigation_coming_soon">Mục này sẽ được bổ sung sau.</string>
+
+    <string name="room_card_night_suffix">/đêm</string>
+    <string name="room_card_book">Đặt</string>
+    <string name="room_card_available_count">%1$d phòng trống</string>
+    <string name="room_bed_type_unknown">Giường tiêu chuẩn</string>
+    <string name="room_default_features">%1$s m² · %2$s · %3$d khách</string>
+    <string name="room_load_failed">Không thể tải danh sách phòng.</string>
+    <string name="room_no_results">Không có phòng phù hợp.</string>
+
+    <string name="search_results_title">Grand Palace Hotel — Kết quả</string>
+    <string name="search_dates_label">Nhận — Trả phòng</string>
+    <string name="search_guests_label">Khách</string>
+    <string name="search_edit">Sửa</string>
+    <string name="search_sort_popular">Phổ biến</string>
+    <string name="search_sort_low_price">Giá thấp</string>
+    <string name="search_sort_area">Diện tích</string>
+    <string name="search_result_count">%1$d loại phòng</string>
+    <string name="search_close_calendar">Xong</string>
+    <string name="search_date_invalid">Ngày trả phòng phải sau ngày nhận phòng</string>
+    <string name="search_select_room_type">Vui lòng chọn loại phòng</string>
+    <string name="search_adult_dialog">Nhập số lượng người lớn</string>
+    <string name="search_child_dialog">Nhập số lượng trẻ em</string>
+    <string name="search_cancel">Hủy</string>
+    <string name="search_ok">OK</string>
+
+    <string name="amenity_breakfast">Bữa sáng</string>
+    <string name="amenity_breakfast_desc">Miễn phí đặt trực tiếp</string>
+    <string name="amenity_pool">Hồ bơi</string>
+    <string name="amenity_pool_desc">Mở 6:00 - 22:00</string>
+
+    <string name="icon_room">🛏</string>
+    <string name="icon_dropdown">▼</string>
+    <string name="icon_calendar">📅</string>
+    <string name="icon_adult">👤</string>
+    <string name="icon_child">👶</string>
+    <string name="icon_gift">🎁</string>
+    <string name="icon_breakfast">🍳</string>
+    <string name="icon_pool">🏊</string>
 </resources>

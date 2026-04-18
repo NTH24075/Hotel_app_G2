@@ -4,7 +4,9 @@ plugins {
 
 android {
     namespace = "com.example.hotellapp"
-    compileSdk = 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId = "com.example.hotellapp"
@@ -32,10 +34,13 @@ android {
 }
 
 dependencies {
-    implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.room.runtime)
     implementation(libs.room.guava)
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
+    implementation(libs.constraintlayout)
+    implementation(libs.coordinatorlayout)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

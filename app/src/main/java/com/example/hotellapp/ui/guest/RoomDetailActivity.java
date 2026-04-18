@@ -1,0 +1,464 @@
+package com.example.hotellapp.ui.guest;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
+
+import com.example.hotellapp.R;
+import com.example.hotellapp.database.DatabaseContract;
+import com.example.hotellapp.database.DatabaseHelper;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
+public class RoomDetailActivity extends AppCompatActivity {
+
+    private DatabaseHelper dbHelper;
+    private int roomTypeId;
+
+    private TextView tvHeaderTitle;
+    private TextView tvRoomName;
+    private TextView tvHotelChip;
+    private TextView tvAvailabilityChip;
+    private TextView tvDealChip;
+    private TextView tvScore;
+    private TextView tvAreaValue;
+    private TextView tvBedValue;
+    private TextView tvCapacityValue;
+    private TextView tvFloorValue;
+    private TextView tvAvailabilityLine;
+    private TextView tvDescription;
+    private TextView tvReadMore;
+    private TextView tvOldPrice;
+    private TextView tvCurrentPrice;
+    private TextView tvTotalPrice;
+
+    private GridLayout amenityContainer;
+    private LinearLayout serviceContainer;
+    private LinearLayout floorRoomContainer;
+    private LinearLayout reviewContainer;
+
+    private boolean expandedDescription = false;
+    private String fullDescription = "";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_room_detail);
+
+        roomTypeId = getIntent().getIntExtra("ROOM_TYPE_ID", -1);
+        if (roomTypeId == -1) {
+            Toast.makeText(this, "Khong tim thay thong tin phong", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        dbHelper = new DatabaseHelper(this);
+        bindViews();
+        bindActions();
+        loadRoomDetail();
+    }
+
+    private void bindViews() {
+        tvHeaderTitle = findViewById(R.id.tv_detail_header_title);
+        tvRoomName = findViewById(R.id.tv_detail_room_name);
+        tvHotelChip = findViewById(R.id.tv_detail_hotel_chip);
+        tvAvailabilityChip = findViewById(R.id.tv_detail_availability_chip);
+        tvDealChip = findViewById(R.id.tv_detail_deal_chip);
+        tvScore = findViewById(R.id.tv_detail_score);
+        tvAreaValue = findViewById(R.id.tv_detail_area);
+        tvBedValue = findViewById(R.id.tv_detail_bed);
+        tvCapacityValue = findViewById(R.id.tv_detail_capacity);
+        tvFloorValue = findViewById(R.id.tv_detail_floor);
+        tvAvailabilityLine = findViewById(R.id.tv_detail_availability_line);
+        tvDescription = findViewById(R.id.tv_detail_description);
+        tvReadMore = findViewById(R.id.tv_detail_read_more);
+        tvOldPrice = findViewById(R.id.tv_detail_old_price);
+        tvCurrentPrice = findViewById(R.id.tv_detail_price);
+        tvTotalPrice = findViewById(R.id.tv_detail_total_price);
+        amenityContainer = findViewById(R.id.layout_detail_amenities);
+        serviceContainer = findViewById(R.id.layout_detail_services);
+        floorRoomContainer = findViewById(R.id.layout_detail_floor_rooms);
+        reviewContainer = findViewById(R.id.layout_detail_reviews);
+    }
+
+    private void bindActions() {
+        findViewById(R.id.btn_back_detail).setOnClickListener(v -> finish());
+        findViewById(R.id.btn_book_now).setOnClickListener(v ->
+                Toast.makeText(this, "Luong dat phong se duoc noi tiep sau.", Toast.LENGTH_SHORT).show()
+        );
+        tvReadMore.setOnClickListener(v -> toggleDescription());
+    }
+
+    private void loadRoomDetail() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        try {
+            loadPrimaryInfo(db);
+            runSafeSection(() -> loadAmenities(db));
+            runSafeSection(() -> loadServices(db));
+            runSafeSection(() -> loadFloorStatuses(db));
+            runSafeSection(() -> loadReviews(db));
+        } catch (Exception exception) {
+            Toast.makeText(this, "Khong the tai chi tiet phong", Toast.LENGTH_SHORT).show();
+            finish();
+        } finally {
+            db.close();
+        }
+    }
+
+    private void runSafeSection(Runnable action) {
+        try {
+            action.run();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void loadPrimaryInfo(SQLiteDatabase db) {
+        String query =
+                "SELECT h.HotelName, h.StarRating, h.CheckInTime, h.CheckOutTime, " +
+                        "rt.TypeName, rt.Description, rt.BedType, rt.SizeSqm, rt.Capacity, rt.PricePerNight, " +
+                        "MIN(r.FloorNumber) AS floor_number, " +
+                        "SUM(CASE WHEN r.RoomStatus = 'Available' THEN 1 ELSE 0 END) AS available_count " +
+                        "FROM Hotel h, RoomTypes rt " +
+                        "LEFT JOIN Rooms r ON rt.RoomTypeId = r.RoomTypeId AND r.IsActive = 1 " +
+                        "WHERE rt.RoomTypeId = ? " +
+                        "GROUP BY h.HotelName, h.StarRating, h.CheckInTime, h.CheckOutTime, " +
+                        "rt.TypeName, rt.Description, rt.BedType, rt.SizeSqm, rt.Capacity, rt.PricePerNight";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
+            if (!cursor.moveToFirst()) {
+                throw new IllegalStateException("Room type not found");
+            }
+
+            String hotelName = safeText(cursor.getString(0), "Grand Palace Hotel");
+            int starRating = cursor.getInt(1);
+            String checkInTime = safeText(cursor.getString(2), "14:00");
+            String checkOutTime = safeText(cursor.getString(3), "12:00");
+            String roomName = safeText(cursor.getString(4), "Phong");
+            fullDescription = safeText(cursor.getString(5), "Phong hien dai, day du tien nghi.");
+            String bedType = safeText(cursor.getString(6), "1 doi");
+            double sizeSqm = cursor.isNull(7) ? 0 : cursor.getDouble(7);
+            int capacity = cursor.getInt(8);
+            double pricePerNight = cursor.getDouble(9);
+            int floorNumber = cursor.isNull(10) ? 0 : cursor.getInt(10);
+            int availableCount = cursor.getInt(11);
+
+            NumberFormat money = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+            double oldPrice = pricePerNight / 0.85d;
+            double totalPrice = pricePerNight * 2;
+
+            tvHeaderTitle.setText("Chi tiet phong");
+            tvRoomName.setText("Phong " + roomName);
+            tvHotelChip.setText(hotelName + " · " + starRating + "★");
+            tvAvailabilityChip.setText("Con " + availableCount + " phong");
+            tvDealChip.setText("Dat truc tiep -15%");
+            tvScore.setText("9.2");
+            tvAreaValue.setText(formatNumber(sizeSqm) + " m²");
+            tvBedValue.setText(bedType);
+            tvCapacityValue.setText(capacity + " nguoi");
+            tvFloorValue.setText("Tang " + floorNumber);
+            tvAvailabilityLine.setText(availableCount + " phong trong · Nhan phong " + checkInTime + " · Tra phong " + checkOutTime + " · 17/04 → 19/04");
+
+            tvDescription.setText(fullDescription);
+            tvDescription.setMaxLines(3);
+            tvReadMore.setVisibility(fullDescription.length() > 120 ? View.VISIBLE : View.GONE);
+
+            tvOldPrice.setText(money.format(Math.round(oldPrice)) + " đ");
+            tvCurrentPrice.setText(money.format(Math.round(pricePerNight)) + " đ");
+            tvTotalPrice.setText("Tong 2 dem: " + money.format(Math.round(totalPrice)) + " đ · Da gom VAT");
+        }
+    }
+
+    private void loadAmenities(SQLiteDatabase db) {
+        amenityContainer.removeAllViews();
+        String query = "SELECT Amenities FROM RoomTypes WHERE RoomTypeId = ?";
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
+            if (!cursor.moveToFirst()) {
+                return;
+            }
+
+            String amenities = safeText(cursor.getString(0), "");
+            for (String amenity : amenities.split(",")) {
+                String trimmed = amenity.trim();
+                if (!trimmed.isEmpty()) {
+                    amenityContainer.addView(createAmenityCard(trimmed));
+                }
+            }
+        }
+    }
+
+    private void loadServices(SQLiteDatabase db) {
+        serviceContainer.removeAllViews();
+        String query = "SELECT ServiceName, Price, UnitLabel, IconGlyph FROM Services WHERE IsActive = 1 ORDER BY ServiceId";
+        try (Cursor cursor = db.rawQuery(query, null)) {
+            while (cursor.moveToNext()) {
+                serviceContainer.addView(createServiceCard(
+                        cursor.getString(3),
+                        cursor.getString(0),
+                        cursor.getDouble(1),
+                        cursor.getString(2)
+                ));
+            }
+        }
+    }
+
+    private void loadFloorStatuses(SQLiteDatabase db) {
+        floorRoomContainer.removeAllViews();
+        String query = "SELECT RoomNumber, RoomStatus FROM Rooms WHERE RoomTypeId = ? AND IsActive = 1 ORDER BY RoomNumber";
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
+            while (cursor.moveToNext()) {
+                floorRoomContainer.addView(createRoomPill(cursor.getString(0), cursor.getString(1)));
+            }
+        }
+    }
+
+    private void loadReviews(SQLiteDatabase db) {
+        reviewContainer.removeAllViews();
+        String query = "SELECT GuestName, GuestInitials, ReviewMonth, Rating, ReviewContent, BookingCode FROM Reviews WHERE RoomTypeId = ? ORDER BY ReviewId DESC";
+        try (Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(roomTypeId)})) {
+            while (cursor.moveToNext()) {
+                reviewContainer.addView(createReviewCard(
+                        cursor.getString(0),
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getInt(3),
+                        cursor.getString(4),
+                        cursor.getString(5)
+                ));
+            }
+        }
+    }
+
+    private void toggleDescription() {
+        expandedDescription = !expandedDescription;
+        tvDescription.setMaxLines(expandedDescription ? Integer.MAX_VALUE : 3);
+        tvReadMore.setText(expandedDescription ? "Thu gon ↑" : "Doc them →");
+    }
+
+    private View createAmenityCard(String text) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setBackgroundResource(R.drawable.bg_room_card);
+        card.setPadding(dp(10), dp(9), dp(10), dp(9));
+
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = 0;
+        params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
+        params.setMargins(0, 0, dp(7), dp(7));
+        card.setLayoutParams(params);
+
+        View dot = new View(this);
+        LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dp(5), dp(5));
+        dot.setLayoutParams(dotParams);
+        dot.setBackgroundColor(ContextCompat.getColor(this, R.color.accent_gold));
+
+        TextView label = new TextView(this);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        labelParams.setMargins(dp(8), 0, 0, 0);
+        label.setLayoutParams(labelParams);
+        label.setText(text);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        label.setTextColor(ContextCompat.getColor(this, R.color.text_black));
+        label.setTypeface(Typeface.DEFAULT_BOLD);
+
+        card.addView(dot);
+        card.addView(label);
+        return card;
+    }
+
+    private View createServiceCard(String icon, String name, double price, String unit) {
+        CardView card = new CardView(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(98), LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, dp(8), 0);
+        card.setLayoutParams(params);
+        card.setRadius(dp(12));
+        card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.white));
+        card.setCardElevation(dp(1));
+
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(10), dp(10), dp(10), dp(10));
+        body.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        TextView iconView = new TextView(this);
+        iconView.setText(icon);
+        iconView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        body.addView(iconView);
+
+        TextView nameView = new TextView(this);
+        nameView.setText(name);
+        nameView.setGravity(Gravity.CENTER);
+        nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+        nameView.setTypeface(Typeface.DEFAULT_BOLD);
+        nameView.setTextColor(ContextCompat.getColor(this, R.color.text_black));
+        body.addView(nameView);
+
+        NumberFormat money = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        TextView priceView = new TextView(this);
+        priceView.setText(money.format(Math.round(price)) + "đ");
+        priceView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+        priceView.setTextColor(ContextCompat.getColor(this, R.color.green_badge_text));
+        priceView.setTypeface(Typeface.DEFAULT_BOLD);
+        body.addView(priceView);
+
+        TextView unitView = new TextView(this);
+        unitView.setText(unit);
+        unitView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);
+        unitView.setTextColor(Color.parseColor("#B0B0B0"));
+        body.addView(unitView);
+
+        card.addView(body);
+        return card;
+    }
+
+    private View createRoomPill(String roomNumber, String status) {
+        TextView pill = new TextView(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, dp(6), dp(6));
+        pill.setLayoutParams(params);
+        pill.setPadding(dp(10), dp(5), dp(10), dp(5));
+        pill.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+        pill.setTypeface(Typeface.DEFAULT_BOLD);
+
+        if (DatabaseContract.RoomsTable.STATUS_AVAILABLE.equals(status)) {
+            pill.setBackgroundColor(Color.parseColor("#E6F4EC"));
+            pill.setTextColor(Color.parseColor("#1A5C30"));
+            pill.setText(roomNumber + " ✓");
+        } else if (DatabaseContract.RoomsTable.STATUS_OCCUPIED.equals(status)) {
+            pill.setBackgroundColor(Color.parseColor("#FCE8E8"));
+            pill.setTextColor(Color.parseColor("#7A1A1A"));
+            pill.setText(roomNumber + " ✗");
+        } else {
+            pill.setBackgroundColor(Color.parseColor("#FFF8E0"));
+            pill.setTextColor(Color.parseColor("#7A5E00"));
+            pill.setText(roomNumber + " ⟳");
+        }
+
+        return pill;
+    }
+
+    private View createReviewCard(String guestName, String initials, String month, int rating, String content, String bookingCode) {
+        CardView card = new CardView(this);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        cardParams.setMargins(0, 0, 0, dp(8));
+        card.setLayoutParams(cardParams);
+        card.setRadius(dp(14));
+        card.setCardBackgroundColor(ContextCompat.getColor(this, R.color.white));
+        card.setCardElevation(dp(1));
+
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(12), dp(12), dp(12), dp(12));
+
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView avatar = new TextView(this);
+        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(31), dp(31));
+        avatar.setLayoutParams(avatarParams);
+        avatar.setGravity(Gravity.CENTER);
+        avatar.setText(initials);
+        avatar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+        avatar.setTypeface(Typeface.DEFAULT_BOLD);
+        avatar.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
+        avatar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary_dark));
+        top.addView(avatar);
+
+        LinearLayout info = new LinearLayout(this);
+        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        infoParams.setMargins(dp(8), 0, 0, 0);
+        info.setLayoutParams(infoParams);
+        info.setOrientation(LinearLayout.VERTICAL);
+
+        TextView name = new TextView(this);
+        name.setText(guestName);
+        name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        name.setTypeface(Typeface.DEFAULT_BOLD);
+        name.setTextColor(ContextCompat.getColor(this, R.color.text_black));
+        info.addView(name);
+
+        TextView date = new TextView(this);
+        date.setText(month);
+        date.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+        date.setTextColor(Color.parseColor("#BBBBBB"));
+        info.addView(date);
+        top.addView(info);
+
+        TextView stars = new TextView(this);
+        stars.setText(buildStars(rating));
+        stars.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
+        stars.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
+        top.addView(stars);
+
+        body.addView(top);
+
+        TextView reviewText = new TextView(this);
+        LinearLayout.LayoutParams reviewParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        reviewParams.setMargins(0, dp(7), 0, 0);
+        reviewText.setLayoutParams(reviewParams);
+        reviewText.setText(content);
+        reviewText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        reviewText.setLineSpacing(0, 1.4f);
+        reviewText.setTextColor(Color.parseColor("#555555"));
+        body.addView(reviewText);
+
+        TextView booking = new TextView(this);
+        LinearLayout.LayoutParams bookingParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        bookingParams.setMargins(0, dp(4), 0, 0);
+        booking.setLayoutParams(bookingParams);
+        booking.setText("Booking da xac nhan · " + bookingCode);
+        booking.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+        booking.setTextColor(Color.parseColor("#BBBBBB"));
+        body.addView(booking);
+
+        card.addView(body);
+        return card;
+    }
+
+    private String buildStars(int rating) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < rating; i++) {
+            builder.append("★");
+        }
+        for (int i = rating; i < 5; i++) {
+            builder.append("☆");
+        }
+        return builder.toString();
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    private String formatNumber(double value) {
+        if (value == Math.rint(value)) {
+            return String.valueOf((int) value);
+        }
+        return String.format(Locale.getDefault(), "%.1f", value);
+    }
+
+    private int dp(int value) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                value,
+                getResources().getDisplayMetrics()
+        );
+    }
+}
