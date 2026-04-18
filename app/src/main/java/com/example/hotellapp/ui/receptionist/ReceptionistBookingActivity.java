@@ -39,6 +39,8 @@ public class ReceptionistBookingActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> detailLauncher;
 
+    private Button btnBackBooking;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +60,7 @@ public class ReceptionistBookingActivity extends AppCompatActivity {
         btnSearch = findViewById(R.id.btnSearch);
         btnRefresh = findViewById(R.id.btnRefresh);
         lvBooking = findViewById(R.id.lvBooking);
+        btnBackBooking = findViewById(R.id.btnBackBooking);
     }
 
     private void initData() {
@@ -93,6 +96,9 @@ public class ReceptionistBookingActivity extends AppCompatActivity {
             Intent intent = new Intent(ReceptionistBookingActivity.this, BookingDetailActivity.class);
             intent.putExtra("BOOKING_ID", booking.getBookingId());
             detailLauncher.launch(intent);
+        });
+        btnBackBooking.setOnClickListener(v -> {
+            finish();
         });
     }
 
