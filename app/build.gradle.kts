@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.cardview)
     implementation(libs.constraintlayout)
     implementation(libs.coordinatorlayout)
+    implementation(libs.room.common.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

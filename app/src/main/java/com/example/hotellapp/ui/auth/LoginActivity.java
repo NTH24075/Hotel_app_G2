@@ -16,6 +16,7 @@ import com.example.hotellapp.database.AppDatabase;
 import com.example.hotellapp.models.User;
 import com.example.hotellapp.ui.admin.AdminMainActivity;
 import com.example.hotellapp.ui.guest.GuestMainActivity;
+import com.example.hotellapp.ui.receptionist.ReceptionistMainActivity;
 import com.example.hotellapp.utils.SessionManager;
 import com.example.hotellapp.utils.ValidationUtils;
 
@@ -96,7 +97,11 @@ public class LoginActivity extends AppCompatActivity {
             intent = new Intent(LoginActivity.this, AdminMainActivity.class);
         } else if (roleId == 3) {
             intent = new Intent(LoginActivity.this, GuestMainActivity.class);
-        } else {
+        } else if(roleId == 2){
+
+            intent = new Intent(LoginActivity.this, ReceptionistMainActivity.class);
+        }
+        else{
             Toast.makeText(this, "Role hiện tại chưa hỗ trợ màn hình riêng", Toast.LENGTH_SHORT).show();
             intent = new Intent(LoginActivity.this, MainActivity.class);
         }

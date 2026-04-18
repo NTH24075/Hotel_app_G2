@@ -31,7 +31,18 @@
             android:text="Quản lý danh sách booking khách sạn"
             android:textColor="#D6E4FF"
             android:textSize="14sp" />
+        <Button
+            android:id="@+id/btnBackBooking"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="← Quay lại"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_back_button"/>
     </LinearLayout>
+
 
     <!-- Stats -->
     <LinearLayout

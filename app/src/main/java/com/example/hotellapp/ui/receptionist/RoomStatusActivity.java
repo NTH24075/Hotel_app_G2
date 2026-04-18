@@ -36,6 +36,7 @@ public class RoomStatusActivity extends AppCompatActivity {
     private RoomDAO roomDAO;
     private List<Room> roomList;
     private RoomStatusAdapter adapter;
+    private Button btnBackRoom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,7 @@ public class RoomStatusActivity extends AppCompatActivity {
         btnRefreshRoom = findViewById(R.id.btnRefreshRoom);
 
         gvRoomStatus = findViewById(R.id.gvRoomStatus);
+        btnBackRoom = findViewById(R.id.btnBackRoom);
     }
 
     private void initData() {
@@ -163,6 +165,9 @@ public class RoomStatusActivity extends AppCompatActivity {
             Room room = roomList.get(position);
 
             showRoomDialog(room);
+        });
+        btnBackRoom.setOnClickListener(v -> {
+            finish();
         });
     }
 
