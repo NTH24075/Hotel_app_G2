@@ -10,18 +10,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Hotel_app_G2">
-        <activity android:name=".ui.guest.GuestMainActivity" />
-        <activity android:name=".ui.admin.AdminMainActivity" />
-        <activity android:name=".ui.guest.GuestUpdateInfor" />
-        <activity android:name=".ui.guest.GuestChangPassword" />
-        <activity android:name=".ui.admin.UserListActivity" />
-        <activity android:name=".ui.admin.UserSearchActivity" />
-        <activity android:name=".ui.admin.CreateReceptionAccountActivity" />
 
-        <activity android:name=".ui.receptionist.BookingDetailActivity" />
-        <activity android:name=".ui.receptionist.ReceptionistBookingActivity" />
-        <activity android:name=".ui.receptionist.RoomStatusActivity" />
-
+        <!-- Splash / Launcher -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,27 +21,35 @@
             </intent-filter>
         </activity>
 
+        <!-- Guest Flow -->
+        <activity android:name=".ui.guest.GuestMainActivity" />
+        <activity android:name=".ui.guest.GuestProfileActivity" />
+        <activity android:name=".ui.guest.SearchResultsActivity" />
+        <activity android:name=".ui.guest.RoomDetailActivity" />
+        <activity android:name=".ui.guest.GuestUpdateInfor" />
+        <activity android:name=".ui.guest.GuestChangPassword" />
+
+        <!-- Auth -->
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="false" />
-
         <activity
             android:name=".ui.auth.RegisterActivity"
             android:exported="false" />
 
+        <!-- Admin Flow -->
+        <activity android:name=".ui.admin.AdminMainActivity" />
+        <activity android:name=".ui.admin.UserListActivity" />
+        <activity android:name=".ui.admin.UserSearchActivity" />
+        <activity android:name=".ui.admin.CreateReceptionAccountActivity" />
+
+        <!-- Receptionist Flow -->
         <activity
             android:name="com.example.hotellapp.ui.receptionist.ReceptionistMainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <activity android:name="com.example.hotellapp.ui.guest.SearchResultsActivity" />
-        <activity android:name="com.example.hotellapp.ui.guest.RoomDetailActivity" />
-        <activity android:name="com.example.hotellapp.ui.auth.LoginActivity" />
-        <activity android:name="com.example.hotellapp.ui.admin.AdminMainActivity" />
+            android:exported="false" />
+        <activity android:name=".ui.receptionist.BookingDetailActivity" />
+        <activity android:name=".ui.receptionist.ReceptionistBookingActivity" />
+        <activity android:name=".ui.receptionist.RoomStatusActivity" />
 
     </application>
 

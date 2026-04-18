@@ -54,8 +54,8 @@
     <string name="room_load_failed">Không thể tải danh sách phòng.</string>
     <string name="room_no_results">Không có phòng phù hợp.</string>
 
-    <string name="search_results_title">Grand Palace Hotel — Kết quả</string>
-    <string name="search_dates_label">Nhận — Trả phòng</string>
+    <string name="search_results_title">Grand Palace Hotel - Kết quả</string>
+    <string name="search_dates_label">Nhận - Trả phòng</string>
     <string name="search_guests_label">Khách</string>
     <string name="search_edit">Sửa</string>
     <string name="search_sort_popular">Phổ biến</string>

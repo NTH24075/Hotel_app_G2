@@ -86,7 +86,6 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         sessionManager.saveLoginSession(user.userId, user.roleId, user.fullName, user.email);
-
         routeByRole(user.roleId);
     }
 

@@ -34,6 +34,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.appcompat)
+    implementation(libs.material)
     implementation(libs.room.runtime)
     implementation(libs.room.guava)
     implementation(libs.recyclerview)
