@@ -21,4 +21,16 @@ public interface UserDAO {
 
     @Query("SELECT * FROM Users WHERE Email = :email AND PasswordHash = :password AND Status = 'Active' LIMIT 1")
     User loginActiveUser(String email, String password);
+
+    @Query("SELECT * FROM Users WHERE UserId = :userId LIMIT 1")
+    User getUserById(int userId);
+
+    @Query("UPDATE Users SET FullName = :fullName, Phone = :phone, CitizenId = :citizenId, Address = :address WHERE UserId = :userId")
+    int updateGuestProfile(int userId, String fullName, String phone, String citizenId, String address);
+
+    @Query("UPDATE Users SET PasswordHash = :newPassword WHERE UserId = :userId")
+    int updatePassword(int userId, String newPassword);
+
+    @Query("SELECT * FROM Users WHERE UserId = :userId AND PasswordHash = :password LIMIT 1")
+    User checkCurrentPassword(int userId, String password);
 }

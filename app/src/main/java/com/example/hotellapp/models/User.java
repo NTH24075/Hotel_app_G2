@@ -39,6 +39,12 @@ public class User {
     @ColumnInfo(name = "Status")
     public String status;
 
+    @ColumnInfo(name = "CitizenId")
+    public String citizenId;
+
+    @ColumnInfo(name = "Address")
+    public String address;
+
     public User() {
     }
 }

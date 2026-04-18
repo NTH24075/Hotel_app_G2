@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.hotellapp.MainActivity;
 import com.example.hotellapp.R;
 import com.example.hotellapp.dao.UserDAO;
 import com.example.hotellapp.database.AppDatabase;
@@ -94,10 +95,11 @@ public class LoginActivity extends AppCompatActivity {
 
         if (roleId == 1) {
             intent = new Intent(LoginActivity.this, AdminMainActivity.class);
-        } else if (roleId == 2) {
-            intent = new Intent(LoginActivity.this, GuestMainActivity.class); // tạm thời
-        } else {
+        } else if (roleId == 3) {
             intent = new Intent(LoginActivity.this, GuestMainActivity.class);
+        } else {
+            Toast.makeText(this, "Role hiện tại chưa hỗ trợ màn hình riêng", Toast.LENGTH_SHORT).show();
+            intent = new Intent(LoginActivity.this, MainActivity.class);
         }
 
         startActivity(intent);

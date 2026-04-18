@@ -29,6 +29,12 @@ public class SessionManager {
         editor.apply();
     }
 
+    public void updateUserSession(String fullName, String email) {
+        editor.putString(KEY_FULL_NAME, fullName);
+        editor.putString(KEY_EMAIL, email);
+        editor.apply();
+    }
+
     public boolean isLoggedIn() {
         return prefs.getBoolean(KEY_LOGGED_IN, false);
     }

@@ -12,6 +12,9 @@
         android:theme="@style/Theme.Hotel_app_G2">
         <activity android:name=".ui.guest.GuestMainActivity"/>
         <activity android:name=".ui.admin.AdminMainActivity"/>
+        <activity android:name=".ui.guest.GuestUpdateInfor"/>
+        <activity android:name=".ui.guest.GuestChangPassword"/>
+
 
         <activity
             android:name=".MainActivity"

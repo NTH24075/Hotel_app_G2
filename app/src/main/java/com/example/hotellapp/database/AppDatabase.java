@@ -14,7 +14,7 @@ import com.example.hotellapp.models.User;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 
-@Database(entities = {User.class, Role.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class, Role.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static volatile AppDatabase INSTANCE;
