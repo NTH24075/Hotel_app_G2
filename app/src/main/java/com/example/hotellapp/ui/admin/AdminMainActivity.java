@@ -1,4 +1,6 @@
 package com.example.hotellapp.ui.admin;
 
-public class AdminMainActivity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class AdminMainActivity extends AppCompatActivity {
 }

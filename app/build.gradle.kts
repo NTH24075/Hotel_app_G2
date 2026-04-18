@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hotel_app_g2"
+    namespace = "com.example.hotellapp"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.hotel_app_g2"
+        applicationId = "com.example.hotellapp"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -36,6 +36,10 @@ android {
 dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.recyclerview)
+    implementation(libs.cardview)
+    implementation(libs.constraintlayout)
+    implementation(libs.coordinatorlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
