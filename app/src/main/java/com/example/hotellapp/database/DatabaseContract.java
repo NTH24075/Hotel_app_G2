@@ -2,7 +2,7 @@ package com.example.hotellapp.database;
 
 public final class DatabaseContract {
     public static final String DATABASE_NAME = "hotel_app.db";
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
 
     private DatabaseContract() {
     }
@@ -69,5 +69,61 @@ public final class DatabaseContract {
         public static final String COLUMN_RATING = "Rating";
         public static final String COLUMN_CONTENT = "ReviewContent";
         public static final String COLUMN_BOOKING_CODE = "BookingCode";
+    }
+    public static final class UsersTable {
+        public static final String TABLE_NAME = "Users";
+        public static final String COLUMN_ID = "UserId";
+        public static final String COLUMN_FULL_NAME = "FullName";
+        public static final String COLUMN_EMAIL = "Email";
+        public static final String COLUMN_PHONE = "Phone";
+    }
+
+    public static final class BookingsTable {
+        public static final String TABLE_NAME = "Bookings";
+
+        public static final String COLUMN_ID = "BookingId";
+        public static final String COLUMN_USER_ID = "UserId";
+        public static final String COLUMN_ROOM_TYPE_ID = "RoomTypeId";
+        public static final String COLUMN_BOOKING_CODE = "BookingCode";
+        public static final String COLUMN_CHECK_IN_DATE = "CheckInDate";
+        public static final String COLUMN_CHECK_OUT_DATE = "CheckOutDate";
+        public static final String COLUMN_GUEST_COUNT = "GuestCount";
+        public static final String COLUMN_NUMBER_OF_ROOMS = "NumberOfRooms";
+        public static final String COLUMN_TOTAL_AMOUNT = "TotalAmount";
+        public static final String COLUMN_BOOKING_STATUS = "BookingStatus";
+        public static final String COLUMN_SPECIAL_REQUEST = "SpecialRequest";
+
+        public static final String STATUS_PENDING = "Pending";
+        public static final String STATUS_CONFIRMED = "Confirmed";
+        public static final String STATUS_CHECKED_IN = "CheckedIn";
+        public static final String STATUS_CHECKED_OUT = "CheckedOut";
+        public static final String STATUS_CANCELLED = "Cancelled";
+    }
+
+    public static final class PaymentsTable {
+        public static final String TABLE_NAME = "Payments";
+
+        public static final String COLUMN_ID = "PaymentId";
+        public static final String COLUMN_BOOKING_ID = "BookingId";
+        public static final String COLUMN_AMOUNT = "Amount";
+        public static final String COLUMN_METHOD = "PaymentMethod";
+        public static final String COLUMN_STATUS = "PaymentStatus";
+        public static final String COLUMN_PAID_AT = "PaidAt";
+        public static final String COLUMN_NOTE = "Note";
+
+        public static final String STATUS_PENDING = "Pending";
+        public static final String STATUS_PAID = "Paid";
+        public static final String STATUS_REFUNDED = "Refunded";
+    }
+
+    public static final class BookingRoomAssignmentsTable {
+        public static final String TABLE_NAME = "BookingRoomAssignments";
+
+        public static final String COLUMN_ID = "AssignmentId";
+        public static final String COLUMN_BOOKING_ID = "BookingId";
+        public static final String COLUMN_ROOM_ID = "RoomId";
+        public static final String COLUMN_ASSIGNED_AT = "AssignedAt";
+        public static final String COLUMN_RELEASED_AT = "ReleasedAt";
+        public static final String COLUMN_NOTE = "Note";
     }
 }

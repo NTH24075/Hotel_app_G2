@@ -82,15 +82,83 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")"
         );
 
+        //booking
+        db.execSQL(
+                "CREATE TABLE " + DatabaseContract.UsersTable.TABLE_NAME + " (" +
+                        DatabaseContract.UsersTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                        DatabaseContract.UsersTable.COLUMN_FULL_NAME + " TEXT NOT NULL, " +
+                        DatabaseContract.UsersTable.COLUMN_EMAIL + " TEXT, " +
+                        DatabaseContract.UsersTable.COLUMN_PHONE + " TEXT" +
+                        ")"
+        );
+
+        db.execSQL(
+                "CREATE TABLE " + DatabaseContract.BookingsTable.TABLE_NAME + " (" +
+                        DatabaseContract.BookingsTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                        DatabaseContract.BookingsTable.COLUMN_USER_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingsTable.COLUMN_BOOKING_CODE + " TEXT NOT NULL UNIQUE, " +
+                        DatabaseContract.BookingsTable.COLUMN_CHECK_IN_DATE + " TEXT NOT NULL, " +
+                        DatabaseContract.BookingsTable.COLUMN_CHECK_OUT_DATE + " TEXT NOT NULL, " +
+                        DatabaseContract.BookingsTable.COLUMN_GUEST_COUNT + " INTEGER NOT NULL DEFAULT 1, " +
+                        DatabaseContract.BookingsTable.COLUMN_NUMBER_OF_ROOMS + " INTEGER NOT NULL DEFAULT 1, " +
+                        DatabaseContract.BookingsTable.COLUMN_TOTAL_AMOUNT + " REAL NOT NULL DEFAULT 0, " +
+                        DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS + " TEXT NOT NULL DEFAULT '" + DatabaseContract.BookingsTable.STATUS_PENDING + "', " +
+                        DatabaseContract.BookingsTable.COLUMN_SPECIAL_REQUEST + " TEXT, " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingsTable.COLUMN_USER_ID + ") REFERENCES " +
+                        DatabaseContract.UsersTable.TABLE_NAME + "(" + DatabaseContract.UsersTable.COLUMN_ID + "), " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID + ") REFERENCES " +
+                        DatabaseContract.RoomTypesTable.TABLE_NAME + "(" + DatabaseContract.RoomTypesTable.COLUMN_ID + ")" +
+                        ")"
+        );
+
+        db.execSQL(
+                "CREATE TABLE " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " (" +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ROOM_ID + " INTEGER NOT NULL, " +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ASSIGNED_AT + " TEXT, " +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_RELEASED_AT + " TEXT, " +
+                        DatabaseContract.BookingRoomAssignmentsTable.COLUMN_NOTE + " TEXT, " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID + ") REFERENCES " +
+                        DatabaseContract.BookingsTable.TABLE_NAME + "(" + DatabaseContract.BookingsTable.COLUMN_ID + "), " +
+                        "FOREIGN KEY(" + DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ROOM_ID + ") REFERENCES " +
+                        DatabaseContract.RoomsTable.TABLE_NAME + "(" + DatabaseContract.RoomsTable.COLUMN_ID + ")" +
+                        ")"
+        );
+
+        db.execSQL(
+                "CREATE TABLE " + DatabaseContract.PaymentsTable.TABLE_NAME + " (" +
+                        DatabaseContract.PaymentsTable.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                        DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + " INTEGER NOT NULL UNIQUE, " +
+                        DatabaseContract.PaymentsTable.COLUMN_AMOUNT + " REAL NOT NULL, " +
+                        DatabaseContract.PaymentsTable.COLUMN_METHOD + " TEXT NOT NULL, " +
+                        DatabaseContract.PaymentsTable.COLUMN_STATUS + " TEXT NOT NULL, " +
+                        DatabaseContract.PaymentsTable.COLUMN_PAID_AT + " TEXT, " +
+                        DatabaseContract.PaymentsTable.COLUMN_NOTE + " TEXT, " +
+                        "FOREIGN KEY(" + DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + ") REFERENCES " +
+                        DatabaseContract.BookingsTable.TABLE_NAME + "(" + DatabaseContract.BookingsTable.COLUMN_ID + ")" +
+                        ")"
+        );
+
         seedHotel(db);
         seedRoomTypes(db);
         seedRooms(db);
+        seedUsers(db);
+        seedBookings(db);
+        seedBookingRoomAssignments(db);
+        seedPayments(db);
         seedServices(db);
         seedReviews(db);
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.PaymentsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.BookingsTable.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.UsersTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.ReviewsTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.ServicesTable.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.RoomsTable.TABLE_NAME);
@@ -148,5 +216,77 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("INSERT INTO Reviews VALUES (1,2,'Phạm Thị Hoa','PH','Tháng 4/2026',4,'Phòng rộng và tiện nghi, dịch vụ tốt. Nhân viên thân thiện, hỗ trợ đón sân bay rất chu đáo.','BK20260501003')");
         db.execSQL("INSERT INTO Reviews VALUES (2,2,'Lê Văn Khách','LK','Tháng 4/2026',5,'Phòng sạch sẽ, nhân viên thân thiện. Check-in nhanh, view thành phố đẹp về đêm.','BK20260401004')");
         db.execSQL("INSERT INTO Reviews VALUES (3,7,'Trần Minh Anh','TA','Tháng 3/2026',5,'Suite rất đáng tiền, không gian yên tĩnh và jacuzzi hoạt động tốt.','BK20260322007')");
+    }
+
+    //booking
+    private void seedUsers(SQLiteDatabase db) {
+        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
+                "(1,'Lê Văn Khách','khach1@gmail.com','0901000003')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
+                "(2,'Phạm Thị Hoa','hoa@gmail.com','0901000004')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
+                "(3,'Nguyễn Văn Guest','guest@gmail.com','0987654321')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.UsersTable.TABLE_NAME + " VALUES " +
+                "(4,'Kiên Nhân','nhan@gmail.com','0977000000')");
+    }
+    private void seedBookings(SQLiteDatabase db) {
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(1,1,2,'BK20260501001','2026-05-10','2026-05-12',2,1,1600000,'" +
+                DatabaseContract.BookingsTable.STATUS_CONFIRMED + "','Cần thêm gối')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(2,1,3,'BK20260501002','2026-05-20','2026-05-23',2,1,4500000,'" +
+                DatabaseContract.BookingsTable.STATUS_PENDING + "',NULL)");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(3,2,7,'BK20260501003','2026-05-05','2026-05-07',4,1,5000000,'" +
+                DatabaseContract.BookingsTable.STATUS_CHECKED_IN + "','Đón sân bay lúc 14h')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(4,2,2,'BK20260401004','2026-04-01','2026-04-03',1,1,1600000,'" +
+                DatabaseContract.BookingsTable.STATUS_CHECKED_OUT + "',NULL)");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(5,3,9,'BK20260501005','2026-05-15','2026-05-18',2,1,45000000,'" +
+                DatabaseContract.BookingsTable.STATUS_CONFIRMED + "','Trang trí phòng dịp sinh nhật')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
+                "(6,4,5,'BK20260501006','2026-05-25','2026-05-27',2,2,6800000,'" +
+                DatabaseContract.BookingsTable.STATUS_PENDING + "',NULL)");
+    }
+    private void seedBookingRoomAssignments(SQLiteDatabase db) {
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
+                "(1,1,201,'2026-05-10 13:00:00',NULL,'Phòng đã cấp cho khách')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
+                "(2,3,701,'2026-05-05 13:30:00',NULL,'Booking đang ở')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
+                "(3,4,202,'2026-04-01 12:00:00','2026-04-03 11:30:00','Booking đã check-out')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +
+                "(4,5,901,'2026-05-15 13:00:00',NULL,'Giữ phòng cho khách')");
+    }
+    private void seedPayments(SQLiteDatabase db) {
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(1,1,1600000,'BankTransfer','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-04-20 10:30:00','Thanh toán online')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(2,2,4500000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PENDING + "',NULL,NULL)");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(3,3,5000000,'MoMo','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-05-05 14:00:00','Thanh toán qua MoMo')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(4,4,1600000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-04-01 13:00:00',NULL)");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(5,5,45000000,'BankTransfer','" + DatabaseContract.PaymentsTable.STATUS_PAID + "','2026-05-01 09:00:00','Đặt phòng dịp sinh nhật')");
+
+        db.execSQL("INSERT INTO " + DatabaseContract.PaymentsTable.TABLE_NAME + " VALUES " +
+                "(6,6,6800000,'Cash','" + DatabaseContract.PaymentsTable.STATUS_PENDING + "',NULL,NULL)");
     }
 }

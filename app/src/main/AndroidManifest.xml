@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Hotel_app_G2">
 
         <activity
-            android:name="com.example.hotellapp.ui.guest.GuestMainActivity"
+            android:name="com.example.hotellapp.ui.receptionist.ReceptionistBookingActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
