@@ -14,8 +14,9 @@
         <activity android:name=".ui.admin.AdminMainActivity"/>
         <activity android:name=".ui.guest.GuestUpdateInfor"/>
         <activity android:name=".ui.guest.GuestChangPassword"/>
-
-
+        <activity android:name=".ui.admin.UserListActivity" />
+        <activity android:name=".ui.admin.UserSearchActivity" />
+        <activity android:name=".ui.admin.CreateReceptionAccountActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

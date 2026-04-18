@@ -21,7 +21,6 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract UserDAO userDAO();
     public abstract RoleDAO roleDAO();
-
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
@@ -39,6 +38,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 }
             }
         }
+        seedAdminIfNeeded(INSTANCE);
         return INSTANCE;
     }
 
@@ -50,6 +50,24 @@ public abstract class AppDatabase extends RoomDatabase {
                         new Role("Receptionist", "Le tan khach san"),
                         new Role("Guest", "Khach dat phong")
                 ));
+            }
+        });
+    }
+    private static void seedAdminIfNeeded(AppDatabase db) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            UserDAO userDAO = db.userDAO();
+
+            User existing = userDAO.getUserByEmail("admin@gmail.com");
+
+            if (existing == null) {
+                User admin = new User();
+                admin.roleId = 1; // Admin
+                admin.fullName = "Admin System";
+                admin.email = "admin@gmail.com";
+                admin.passwordHash = "12345678";
+                admin.status = "Active";
+
+                userDAO.registerUser(admin);
             }
         });
     }

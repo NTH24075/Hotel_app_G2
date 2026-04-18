@@ -4,7 +4,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-
+import java.util.List;
 import com.example.hotellapp.models.User;
 
 @Dao
@@ -33,4 +33,34 @@ public interface UserDAO {
 
     @Query("SELECT * FROM Users WHERE UserId = :userId AND PasswordHash = :password LIMIT 1")
     User checkCurrentPassword(int userId, String password);
+
+    @Query("SELECT COUNT(*) FROM Users")
+    int countAllUsers();
+
+    @Query("SELECT COUNT(*) FROM Users WHERE RoleId = :roleId")
+    int countUsersByRole(int roleId);
+
+    @Query("SELECT COUNT(*) FROM Users WHERE Status != 'Active'")
+    int countInactiveUsers();
+    // ===== ADMIN - USER MANAGEMENT =====
+
+    @Query("SELECT * FROM Users ORDER BY UserId DESC")
+    List<User> getAllUsers();
+    @Query("SELECT * FROM Users" +
+            " WHERE FullName LIKE '%' || :keyword || '%'" +
+            " OR Email LIKE '%' || :keyword || '%'" +
+            " OR Phone LIKE '%' || :keyword || '%'" +
+            " ORDER BY UserId DESC")
+    List<User> searchUsers(String keyword);
+
+    @Query("SELECT * FROM Users Where RoleId != 1")
+    List<User> getAllGuestsExceptAdmin();
+
+    @Query("SELECT * FROM Users WHERE Status IS NULL OR Status != 'Active' ORDER BY UserId DESC")
+    List<User> getBlockedOrInactiveUsers();
+
+    @Query("UPDATE Users SET Status = :status WHERE UserId = :userId")
+    int updateUserStatus(int userId, String status);
+
+
 }
