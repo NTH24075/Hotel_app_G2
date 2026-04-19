@@ -2,7 +2,7 @@ package com.example.hotellapp.database;
 
 public final class DatabaseContract {
     public static final String DATABASE_NAME = "hotel_app.db";
-    public static final int DATABASE_VERSION = 10;
+    public static final int DATABASE_VERSION = 11;
 
     private DatabaseContract() {
     }

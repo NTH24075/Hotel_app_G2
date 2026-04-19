@@ -230,24 +230,32 @@ public class BookingDetailActivity extends AppCompatActivity {
                 android.widget.Toast.makeText(this, "Đã xác nhận booking", android.widget.Toast.LENGTH_SHORT).show();
                 loadBookingDetail();
                 setResult(RESULT_OK);
+            } else {
+                android.widget.Toast.makeText(this, "Không thể xác nhận booking", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
 
         btnCheckIn.setOnClickListener(v -> {
             boolean ok = bookingDAO.checkInBooking(bookingId);
             if (ok) {
-                android.widget.Toast.makeText(this, "Check-in thành công và đã xác nhận thanh toán", android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast.makeText(this, "Check-in thành công, đã thanh toán và đã gán phòng", android.widget.Toast.LENGTH_SHORT).show();
                 loadBookingDetail();
+                loadBookingServices();
                 setResult(RESULT_OK);
+            } else {
+                android.widget.Toast.makeText(this, "Check-in thất bại hoặc không đủ phòng trống", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
 
         btnCheckOut.setOnClickListener(v -> {
             boolean ok = bookingDAO.checkOutBooking(bookingId);
             if (ok) {
-                android.widget.Toast.makeText(this, "Check-out thành công", android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast.makeText(this, "Check-out thành công, phòng chuyển sang Cleaning", android.widget.Toast.LENGTH_SHORT).show();
                 loadBookingDetail();
+                loadBookingServices();
                 setResult(RESULT_OK);
+            } else {
+                android.widget.Toast.makeText(this, "Check-out thất bại", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
 

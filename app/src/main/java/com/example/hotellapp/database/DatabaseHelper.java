@@ -162,7 +162,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         seedRooms(db);
         seedUsers(db);
         seedServices(db);
-        seedBookings(db);
         seedBookingRoomAssignments(db);
         seedPayments(db);
         seedReviews(db);
@@ -243,31 +242,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    private void seedBookings(SQLiteDatabase db) {
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(1,1,2,'BK20260501001','2026-05-10','2026-05-12',2,1,1600000,'" +
-                DatabaseContract.BookingsTable.STATUS_CONFIRMED + "','Cần thêm gối')");
 
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(2,1,3,'BK20260501002','2026-05-20','2026-05-23',2,1,4500000,'" +
-                DatabaseContract.BookingsTable.STATUS_PENDING + "',NULL)");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(3,2,7,'BK20260501003','2026-05-05','2026-05-07',4,1,5000000,'" +
-                DatabaseContract.BookingsTable.STATUS_CHECKED_IN + "','Đón sân bay lúc 14h')");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(4,2,2,'BK20260401004','2026-04-01','2026-04-03',1,1,1600000,'" +
-                DatabaseContract.BookingsTable.STATUS_CHECKED_OUT + "',NULL)");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(5,3,9,'BK20260501005','2026-05-15','2026-05-18',2,1,45000000,'" +
-                DatabaseContract.BookingsTable.STATUS_PENDING + "','Trang trí phòng dịp sinh nhật')");
-
-        db.execSQL("INSERT INTO " + DatabaseContract.BookingsTable.TABLE_NAME + " VALUES " +
-                "(6,4,5,'BK20260501006','2026-05-25','2026-05-27',2,2,6800000,'" +
-                DatabaseContract.BookingsTable.STATUS_PENDING + "',NULL)");
-    }
 
     private void seedBookingRoomAssignments(SQLiteDatabase db) {
         db.execSQL("INSERT INTO " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME + " VALUES " +

@@ -67,7 +67,7 @@ public class ReceptionistBookingActivity extends AppCompatActivity {
         bookingDAO = new BookingDAO(this);
         loadAllBookings();
         detailLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
+                new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK) {
                         loadAllBookings();

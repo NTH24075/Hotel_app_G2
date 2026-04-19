@@ -2,6 +2,8 @@ package com.example.hotellapp.ui.receptionist;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
@@ -115,7 +117,7 @@ public class RoomStatusActivity extends AppCompatActivity {
 
         adapter = new RoomStatusAdapter(
                 RoomStatusActivity.this,
-                (ArrayList<Room>) roomList
+                new ArrayList<>(roomList)
         );
 
         gvRoomStatus.setAdapter(adapter);
@@ -124,9 +126,7 @@ public class RoomStatusActivity extends AppCompatActivity {
     private void addEvents() {
 
         btnFilterRoom.setOnClickListener(v -> {
-
-            String selectedStatus =
-                    spRoomStatus.getSelectedItem().toString();
+            String selectedStatus = spRoomStatus.getSelectedItem().toString();
 
             if (selectedStatus.equals("Tất cả")) {
                 loadAllRooms();
@@ -135,30 +135,28 @@ public class RoomStatusActivity extends AppCompatActivity {
 
                 adapter = new RoomStatusAdapter(
                         RoomStatusActivity.this,
-                        (ArrayList<Room>) roomList
+                        new ArrayList<>(roomList)
                 );
 
                 gvRoomStatus.setAdapter(adapter);
             }
 
-            Toast.makeText(
-                    this,
-                    "Đã lọc trạng thái phòng",
-                    Toast.LENGTH_SHORT
-            ).show();
+            Toast.makeText(this, "Đã lọc trạng thái phòng", Toast.LENGTH_SHORT).show();
         });
 
-        btnRefreshRoom.setOnClickListener(v -> {
-            spRoomStatus.setSelection(0);
-            loadStatistics();
-            loadAllRooms();
 
-            Toast.makeText(
-                    this,
-                    "Đã làm mới danh sách phòng",
-                    Toast.LENGTH_SHORT
-            ).show();
-        });
+
+            btnRefreshRoom.setOnClickListener(v -> {
+                spRoomStatus.setSelection(0);
+                loadStatistics();
+                loadAllRooms();
+
+                Toast.makeText(
+                        this,
+                        "Đã làm mới danh sách phòng",
+                        Toast.LENGTH_SHORT
+                ).show();
+            });
 
         gvRoomStatus.setOnItemClickListener((parent, view, position, id) -> {
 
@@ -182,10 +180,54 @@ public class RoomStatusActivity extends AppCompatActivity {
                         "\nSức chứa: " + room.getCapacity() +
                         "\nDiện tích: " + room.getSizeSqm() + " m²";
 
-        new AlertDialog.Builder(this)
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
                 .setTitle("Thông tin phòng")
                 .setMessage(info)
-                .setPositiveButton("Đóng", null)
-                .show();
+                .setNegativeButton("Đóng", null);
+
+        if (DatabaseContract.RoomsTable.STATUS_CLEANING.equals(room.getRoomStatus())) {
+            builder.setPositiveButton("Hoàn tất dọn phòng", (dialog, which) -> {
+                boolean ok = roomDAO.markRoomAsAvailable(room.getRoomId());
+
+                if (ok) {
+                    Toast.makeText(this, "Phòng đã chuyển sang Available", Toast.LENGTH_SHORT).show();
+                    loadStatistics();
+                    loadAllRooms();
+                } else {
+                    Toast.makeText(this, "Cập nhật trạng thái phòng thất bại", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        builder.show();
     }
+        private void setGridViewHeightBasedOnChildren(GridView gridView, int numColumns) {
+            android.widget.ListAdapter listAdapter = gridView.getAdapter();
+            if (listAdapter == null) return;
+
+            int totalItems = listAdapter.getCount();
+            if (totalItems == 0) {
+                ViewGroup.LayoutParams params = gridView.getLayoutParams();
+                params.height = 0;
+                gridView.setLayoutParams(params);
+                return;
+            }
+
+            int rows = (int) Math.ceil((double) totalItems / numColumns);
+
+            View listItem = listAdapter.getView(0, null, gridView);
+            listItem.measure(
+                    View.MeasureSpec.makeMeasureSpec(gridView.getWidth(), View.MeasureSpec.AT_MOST),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            );
+
+            int itemHeight = listItem.getMeasuredHeight();
+            int totalHeight = itemHeight * rows;
+            int totalSpacing = gridView.getVerticalSpacing() * (rows - 1);
+
+            ViewGroup.LayoutParams params = gridView.getLayoutParams();
+            params.height = totalHeight + totalSpacing;
+            gridView.setLayoutParams(params);
+            gridView.requestLayout();
+        }
 }

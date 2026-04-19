@@ -53,14 +53,14 @@ public class BookingDAO {
 
         String sql = "SELECT b." + DatabaseContract.BookingsTable.COLUMN_ID + ", " +
                 "b." + DatabaseContract.BookingsTable.COLUMN_BOOKING_CODE + ", " +
-                "u." + DatabaseContract.UsersTable.COLUMN_FULL_NAME + ", " +
+                "IFNULL(u." + DatabaseContract.UsersTable.COLUMN_FULL_NAME + ", 'Không rõ khách') , " +
                 "rt." + DatabaseContract.RoomTypesTable.COLUMN_TYPE_NAME + ", " +
                 "b." + DatabaseContract.BookingsTable.COLUMN_CHECK_IN_DATE + ", " +
                 "b." + DatabaseContract.BookingsTable.COLUMN_CHECK_OUT_DATE + ", " +
                 "b." + DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS + ", " +
-                "p." + DatabaseContract.PaymentsTable.COLUMN_STATUS + " " +
+                "IFNULL(p." + DatabaseContract.PaymentsTable.COLUMN_STATUS + ", 'Unpaid') " +
                 "FROM " + DatabaseContract.BookingsTable.TABLE_NAME + " b " +
-                "INNER JOIN " + DatabaseContract.UsersTable.TABLE_NAME + " u " +
+                "LEFT JOIN " + DatabaseContract.UsersTable.TABLE_NAME + " u " +
                 "ON b." + DatabaseContract.BookingsTable.COLUMN_USER_ID + " = u." + DatabaseContract.UsersTable.COLUMN_ID + " " +
                 "INNER JOIN " + DatabaseContract.RoomTypesTable.TABLE_NAME + " rt " +
                 "ON b." + DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID + " = rt." + DatabaseContract.RoomTypesTable.COLUMN_ID + " " +
@@ -301,6 +301,92 @@ public class BookingDAO {
         db.beginTransaction();
 
         try {
+            // 1. booking phải đang Confirmed
+            Cursor bookingCursor = db.rawQuery(
+                    "SELECT " + DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS +
+                            " FROM " + DatabaseContract.BookingsTable.TABLE_NAME +
+                            " WHERE " + DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
+            );
+
+            if (bookingCursor == null || !bookingCursor.moveToFirst()) {
+                if (bookingCursor != null) bookingCursor.close();
+                return false;
+            }
+
+            String currentStatus = bookingCursor.getString(0);
+            bookingCursor.close();
+
+            if (!DatabaseContract.BookingsTable.STATUS_CONFIRMED.equals(currentStatus)) {
+                return false;
+            }
+
+            // 2. lấy RoomTypeId và số lượng phòng cần gán
+            int roomTypeId = getBookingRoomTypeId(db, bookingId);
+            int numberOfRooms = getBookingNumberOfRooms(db, bookingId);
+
+            if (roomTypeId <= 0 || numberOfRooms <= 0) {
+                return false;
+            }
+
+            // 3. nếu booking chưa có phòng gán thì gán phòng
+            if (!hasAssignedRooms(db, bookingId)) {
+                ArrayList<Integer> availableRoomIds = getAvailableRoomIdsByRoomType(db, roomTypeId, numberOfRooms);
+
+                if (availableRoomIds.size() < numberOfRooms) {
+                    // không đủ phòng trống để check-in
+                    return false;
+                }
+
+                for (int roomId : availableRoomIds) {
+                    ContentValues assignmentValues = new ContentValues();
+                    assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID, bookingId);
+                    assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ROOM_ID, roomId);
+                    assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ASSIGNED_AT, getNowText());
+                    assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_RELEASED_AT, (String) null);
+                    assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_NOTE, "Gán phòng khi check-in");
+
+                    long assignRow = db.insert(DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME, null, assignmentValues);
+                    if (assignRow == -1) {
+                        return false;
+                    }
+
+                    ContentValues roomValues = new ContentValues();
+                    roomValues.put(DatabaseContract.RoomsTable.COLUMN_ROOM_STATUS, DatabaseContract.RoomsTable.STATUS_OCCUPIED);
+
+                    int roomRows = db.update(
+                            DatabaseContract.RoomsTable.TABLE_NAME,
+                            roomValues,
+                            DatabaseContract.RoomsTable.COLUMN_ID + " = ?",
+                            new String[]{String.valueOf(roomId)}
+                    );
+
+                    if (roomRows <= 0) {
+                        return false;
+                    }
+                }
+            } else {
+                // nếu đã có phòng gán sẵn thì chỉ cần đổi trạng thái các phòng đó sang Occupied
+                ArrayList<Integer> assignedRoomIds = getAssignedRoomIds(db, bookingId);
+
+                for (int roomId : assignedRoomIds) {
+                    ContentValues roomValues = new ContentValues();
+                    roomValues.put(DatabaseContract.RoomsTable.COLUMN_ROOM_STATUS, DatabaseContract.RoomsTable.STATUS_OCCUPIED);
+
+                    int roomRows = db.update(
+                            DatabaseContract.RoomsTable.TABLE_NAME,
+                            roomValues,
+                            DatabaseContract.RoomsTable.COLUMN_ID + " = ?",
+                            new String[]{String.valueOf(roomId)}
+                    );
+
+                    if (roomRows <= 0) {
+                        return false;
+                    }
+                }
+            }
+
+            // 4. đổi trạng thái booking sang CheckedIn
             ContentValues bookingValues = new ContentValues();
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS,
                     DatabaseContract.BookingsTable.STATUS_CHECKED_IN);
@@ -308,23 +394,20 @@ public class BookingDAO {
             int bookingRows = db.update(
                     DatabaseContract.BookingsTable.TABLE_NAME,
                     bookingValues,
-                    DatabaseContract.BookingsTable.COLUMN_ID + " = ? AND " +
-                            DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS + " = ?",
-                    new String[]{
-                            String.valueOf(bookingId),
-                            DatabaseContract.BookingsTable.STATUS_CONFIRMED
-                    }
+                    DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
             );
 
             if (bookingRows <= 0) {
-                db.endTransaction();
-                db.close();
                 return false;
             }
 
+            // 5. xác nhận thanh toán luôn
             ContentValues paymentValues = new ContentValues();
             paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_STATUS,
                     DatabaseContract.PaymentsTable.STATUS_PAID);
+            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_PAID_AT, getNowText());
+            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_NOTE, "Đã thanh toán khi check-in");
 
             db.update(
                     DatabaseContract.PaymentsTable.TABLE_NAME,
@@ -335,6 +418,10 @@ public class BookingDAO {
 
             db.setTransactionSuccessful();
             return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         } finally {
             db.endTransaction();
             db.close();
@@ -342,31 +429,198 @@ public class BookingDAO {
     }
     public boolean checkOutBooking(int bookingId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.beginTransaction();
 
-        ContentValues values = new ContentValues();
-        values.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS,
-                DatabaseContract.BookingsTable.STATUS_CHECKED_OUT);
+        try {
+            Cursor bookingCursor = db.rawQuery(
+                    "SELECT " + DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS +
+                            " FROM " + DatabaseContract.BookingsTable.TABLE_NAME +
+                            " WHERE " + DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
+            );
 
-        int rows = db.update(
-                DatabaseContract.BookingsTable.TABLE_NAME,
-                values,
-                DatabaseContract.BookingsTable.COLUMN_ID + " = ? AND " +
-                        DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS + " = ?",
+            if (bookingCursor == null || !bookingCursor.moveToFirst()) {
+                if (bookingCursor != null) bookingCursor.close();
+                return false;
+            }
+
+            String currentStatus = bookingCursor.getString(0);
+            bookingCursor.close();
+
+            if (!DatabaseContract.BookingsTable.STATUS_CHECKED_IN.equals(currentStatus)) {
+                return false;
+            }
+
+            // 1. đổi booking -> CheckedOut
+            ContentValues bookingValues = new ContentValues();
+            bookingValues.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS,
+                    DatabaseContract.BookingsTable.STATUS_CHECKED_OUT);
+
+            int bookingRows = db.update(
+                    DatabaseContract.BookingsTable.TABLE_NAME,
+                    bookingValues,
+                    DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
+            );
+
+            if (bookingRows <= 0) {
+                return false;
+            }
+
+            // 2. tìm tất cả phòng đã gán cho booking này
+            ArrayList<Integer> assignedRoomIds = getAssignedRoomIds(db, bookingId);
+
+            // 3. đổi các phòng đó từ Occupied -> Cleaning
+            for (int roomId : assignedRoomIds) {
+                ContentValues roomValues = new ContentValues();
+                roomValues.put(DatabaseContract.RoomsTable.COLUMN_ROOM_STATUS,
+                        DatabaseContract.RoomsTable.STATUS_CLEANING);
+
+                int roomRows = db.update(
+                        DatabaseContract.RoomsTable.TABLE_NAME,
+                        roomValues,
+                        DatabaseContract.RoomsTable.COLUMN_ID + " = ?",
+                        new String[]{String.valueOf(roomId)}
+                );
+
+                if (roomRows <= 0) {
+                    return false;
+                }
+            }
+
+            // 4. cập nhật ReleasedAt cho assignment
+            ContentValues assignmentValues = new ContentValues();
+            assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_RELEASED_AT, getNowText());
+            assignmentValues.put(DatabaseContract.BookingRoomAssignmentsTable.COLUMN_NOTE, "Đã check-out");
+
+            db.update(
+                    DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME,
+                    assignmentValues,
+                    DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
+            );
+
+            db.setTransactionSuccessful();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
+    private int getBookingRoomTypeId(SQLiteDatabase db, int bookingId) {
+        int roomTypeId = -1;
+
+        Cursor cursor = db.rawQuery(
+                "SELECT " + DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID +
+                        " FROM " + DatabaseContract.BookingsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(bookingId)}
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            roomTypeId = cursor.getInt(0);
+        }
+
+        if (cursor != null) cursor.close();
+        return roomTypeId;
+    }
+
+    private int getBookingNumberOfRooms(SQLiteDatabase db, int bookingId) {
+        int numberOfRooms = 1;
+
+        Cursor cursor = db.rawQuery(
+                "SELECT " + DatabaseContract.BookingsTable.COLUMN_NUMBER_OF_ROOMS +
+                        " FROM " + DatabaseContract.BookingsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.BookingsTable.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(bookingId)}
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            numberOfRooms = cursor.getInt(0);
+        }
+
+        if (cursor != null) cursor.close();
+        return numberOfRooms;
+    }
+
+    private ArrayList<Integer> getAvailableRoomIdsByRoomType(SQLiteDatabase db, int roomTypeId, int limit) {
+        ArrayList<Integer> roomIds = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT " + DatabaseContract.RoomsTable.COLUMN_ID +
+                        " FROM " + DatabaseContract.RoomsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.RoomsTable.COLUMN_ROOM_TYPE_ID + " = ? " +
+                        " AND " + DatabaseContract.RoomsTable.COLUMN_ROOM_STATUS + " = ? " +
+                        " AND " + DatabaseContract.RoomsTable.COLUMN_IS_ACTIVE + " = 1 " +
+                        " ORDER BY " + DatabaseContract.RoomsTable.COLUMN_ROOM_NUMBER + " ASC",
                 new String[]{
-                        String.valueOf(bookingId),
-                        DatabaseContract.BookingsTable.STATUS_CHECKED_IN
+                        String.valueOf(roomTypeId),
+                        DatabaseContract.RoomsTable.STATUS_AVAILABLE
                 }
         );
 
-        db.close();
-        return rows > 0;
+        if (cursor != null) {
+            while (cursor.moveToNext() && roomIds.size() < limit) {
+                roomIds.add(cursor.getInt(0));
+            }
+            cursor.close();
+        }
+
+        return roomIds;
+    }
+
+    private boolean hasAssignedRooms(SQLiteDatabase db, int bookingId) {
+        Cursor cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID + " = ?",
+                new String[]{String.valueOf(bookingId)}
+        );
+
+        boolean result = false;
+        if (cursor != null && cursor.moveToFirst()) {
+            result = cursor.getInt(0) > 0;
+        }
+
+        if (cursor != null) cursor.close();
+        return result;
+    }
+
+    private ArrayList<Integer> getAssignedRoomIds(SQLiteDatabase db, int bookingId) {
+        ArrayList<Integer> roomIds = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT " + DatabaseContract.BookingRoomAssignmentsTable.COLUMN_ROOM_ID +
+                        " FROM " + DatabaseContract.BookingRoomAssignmentsTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.BookingRoomAssignmentsTable.COLUMN_BOOKING_ID + " = ?",
+                new String[]{String.valueOf(bookingId)}
+        );
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                roomIds.add(cursor.getInt(0));
+            }
+            cursor.close();
+        }
+
+        return roomIds;
+    }
+
+    private String getNowText() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
     }
 
 
 
     // Booking Nhan lam
     public int createBooking(
-            int userId,
+            String fullName,
+            String email,
+            String phone,
             int roomTypeId,
             String checkInDate,
             String checkOutDate,
@@ -378,16 +632,26 @@ public class BookingDAO {
         db.beginTransaction();
 
         try {
+            int sqliteUserId = getOrCreateSQLiteUserId(db, fullName, email, phone);
+            if (sqliteUserId == -1) {
+                return -1;
+            }
+
             int nights = calculateNights(checkInDate, checkOutDate);
-            if (nights <= 0) nights = 1;
+            if (nights <= 0) {
+                nights = 1;
+            }
 
             double pricePerNight = getRoomTypePrice(db, roomTypeId);
-            double roomTotal = pricePerNight * nights * numberOfRooms;
+            if (pricePerNight <= 0) {
+                return -1;
+            }
 
+            double roomTotal = pricePerNight * nights * numberOfRooms;
             String bookingCode = generateBookingCode();
 
             ContentValues bookingValues = new ContentValues();
-            bookingValues.put(DatabaseContract.BookingsTable.COLUMN_USER_ID, userId);
+            bookingValues.put(DatabaseContract.BookingsTable.COLUMN_USER_ID, sqliteUserId);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_ROOM_TYPE_ID, roomTypeId);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_CODE, bookingCode);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_CHECK_IN_DATE, checkInDate);
@@ -428,6 +692,38 @@ public class BookingDAO {
             db.endTransaction();
             db.close();
         }
+    }
+    private int getOrCreateSQLiteUserId(SQLiteDatabase db, String fullName, String email, String phone) {
+        Cursor cursor = db.rawQuery(
+                "SELECT " + DatabaseContract.UsersTable.COLUMN_ID +
+                        " FROM " + DatabaseContract.UsersTable.TABLE_NAME +
+                        " WHERE " + DatabaseContract.UsersTable.COLUMN_EMAIL + " = ?",
+                new String[]{email}
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int existingUserId = cursor.getInt(0);
+            cursor.close();
+            return existingUserId;
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        ContentValues userValues = new ContentValues();
+        userValues.put(DatabaseContract.UsersTable.COLUMN_FULL_NAME, fullName);
+        userValues.put(DatabaseContract.UsersTable.COLUMN_FULL_NAME_UNSIGNED, removeVietnameseAccents(fullName));
+        userValues.put(DatabaseContract.UsersTable.COLUMN_EMAIL, email);
+        userValues.put(DatabaseContract.UsersTable.COLUMN_PHONE, phone);
+
+        long newUserId = db.insert(DatabaseContract.UsersTable.TABLE_NAME, null, userValues);
+
+        if (newUserId == -1) {
+            return -1;
+        }
+
+        return (int) newUserId;
     }
 
     public BookingDetail getBookingDetail(int bookingId) {
@@ -487,6 +783,7 @@ public class BookingDAO {
         db.close();
         return detail;
     }
+
 
     public List<ServiceItem> getAllServicesForBooking(int bookingId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();

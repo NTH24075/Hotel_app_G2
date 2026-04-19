@@ -134,12 +134,19 @@ public class BookingActivity extends AppCompatActivity {
         btnBackBooking.setOnClickListener(v -> finish());
 
         btnConfirmBooking.setOnClickListener(v -> {
-            int userId = sessionManager.getUserId();
-
-            if (!sessionManager.isLoggedIn() || userId <= 0) {
+            if (!sessionManager.isLoggedIn()) {
                 Toast.makeText(this, "Bạn chưa đăng nhập", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(BookingActivity.this, LoginActivity.class));
                 finish();
+                return;
+            }
+
+            String fullName = sessionManager.getFullName();
+            String email = sessionManager.getEmail();
+            String phone = sessionManager.getPhone();
+
+            if (isBlank(fullName) || isBlank(email)) {
+                Toast.makeText(this, "Thiếu thông tin người dùng để tạo booking", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -151,7 +158,9 @@ public class BookingActivity extends AppCompatActivity {
             }
 
             int bookingId = bookingDAO.createBooking(
-                    userId,
+                    fullName,
+                    email,
+                    phone,
                     roomTypeId,
                     safe(checkInDate, getTodayPlusDays(0)),
                     safe(checkOutDate, getTodayPlusDays(2)),
