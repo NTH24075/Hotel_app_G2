@@ -68,10 +68,14 @@ public class GuestProfileActivity extends AppCompatActivity {
         if (btnBackHome != null) {
             btnBackHome.setOnClickListener(v -> finish());
         }
-
+        if (btnChangePassword != null) {
+            btnChangePassword.setOnClickListener(v -> {
+                startActivity(new Intent(this, GuestChangPassword.class));
+            });
+        }
         if (btnUpdateProfile != null) {
             btnUpdateProfile.setOnClickListener(v -> {
-                // startActivity(new Intent(this, GuestUpdateInfor.class));
+                 startActivity(new Intent(this, GuestUpdateInfor.class));
             });
         }
 

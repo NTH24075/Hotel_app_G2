@@ -59,6 +59,7 @@ public class CreateReceptionAccountActivity extends AppCompatActivity {
     private void handleCreateReceptionAccount() {
         String email = edtReceptionEmail.getText().toString().trim();
         String password = edtReceptionPassword.getText().toString().trim();
+        String phone = edtReceptionPhone.getText().toString().trim();
 
         if (!ValidationUtils.isValidEmail(email)) {
             edtReceptionEmail.setError("Email không hợp lệ");
@@ -84,7 +85,7 @@ public class CreateReceptionAccountActivity extends AppCompatActivity {
         user.fullName = "Receptionist";
         user.email = email;
         user.passwordHash = password;
-        user.phone = null;
+        user.phone = phone;
         user.status = "Active";
         user.citizenId = null;
         user.address = null;
