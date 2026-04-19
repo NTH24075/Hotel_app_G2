@@ -95,8 +95,8 @@ public class BookingActivity extends AppCompatActivity {
         totalPriceText = getIntent().getStringExtra("TOTAL_PRICE_TEXT");
         capacityText = getIntent().getStringExtra("CAPACITY_TEXT");
 
-        checkInDate = getIntent().getStringExtra("CHECK_IN_DATE");
-        checkOutDate = getIntent().getStringExtra("CHECK_OUT_DATE");
+        checkInDate = safe(getIntent().getStringExtra("CHECK_IN_DATE"), getTodayPlusDays(0));
+        checkOutDate = safe(getIntent().getStringExtra("CHECK_OUT_DATE"), getTodayPlusDays(2));
         guestCount = getIntent().getIntExtra("GUEST_COUNT", 2);
         numberOfRooms = getIntent().getIntExtra("NUMBER_OF_ROOMS", 1);
     }
@@ -115,8 +115,8 @@ public class BookingActivity extends AppCompatActivity {
         tvEmail.setText(isBlank(email) ? "Chưa có email" : email);
 
         tvRoomType.setText(safe(roomName, "Chưa có thông tin phòng"));
-        tvCheckIn.setText("Check-in: " + safe(checkInDate, getTodayPlusDays(0)));
-        tvCheckOut.setText("Check-out: " + safe(checkOutDate, getTodayPlusDays(2)));
+        tvCheckIn.setText("Check-in: " + formatDateDisplayFull(checkInDate));
+        tvCheckOut.setText("Check-out: " + formatDateDisplayFull(checkOutDate));
         tvGuests.setText("Sức chứa: " + safe(capacityText, guestCount + " người"));
         tvRooms.setText("Số phòng: " + numberOfRooms);
         tvNights.setText("Số đêm: " + calculateNightsText(checkInDate, checkOutDate));
@@ -125,7 +125,6 @@ public class BookingActivity extends AppCompatActivity {
         tvServiceTotal.setText("Tiền dịch vụ: 0 VNĐ");
         tvTotalAmount.setText(safe(totalPriceText, "0 VNĐ"));
 
-        // QUAN TRỌNG: không set text mặc định nữa
         edtSpecialRequest.setText("");
         edtSpecialRequest.setHint("Ví dụ: cần phòng tầng cao, thêm gối, gần cửa sổ...");
     }
@@ -162,8 +161,8 @@ public class BookingActivity extends AppCompatActivity {
                     email,
                     phone,
                     roomTypeId,
-                    safe(checkInDate, getTodayPlusDays(0)),
-                    safe(checkOutDate, getTodayPlusDays(2)),
+                    checkInDate,   // giữ nguyên yyyy-MM-dd để lưu DB
+                    checkOutDate,  // giữ nguyên yyyy-MM-dd để lưu DB
                     guestCount,
                     numberOfRooms,
                     specialRequest
@@ -198,12 +197,9 @@ public class BookingActivity extends AppCompatActivity {
 
     private String calculateNightsText(String checkIn, String checkOut) {
         try {
-            String inValue = safe(checkIn, getTodayPlusDays(0));
-            String outValue = safe(checkOut, getTodayPlusDays(2));
-
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Date inDate = sdf.parse(inValue);
-            Date outDate = sdf.parse(outValue);
+            Date inDate = sdf.parse(checkIn);
+            Date outDate = sdf.parse(checkOut);
 
             if (inDate == null || outDate == null) return "2";
 
@@ -212,6 +208,18 @@ public class BookingActivity extends AppCompatActivity {
             return String.valueOf(Math.max(nights, 1));
         } catch (Exception e) {
             return "2";
+        }
+    }
+
+    private String formatDateDisplayFull(String dateValue) {
+        try {
+            SimpleDateFormat input = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat output = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date date = input.parse(dateValue);
+            if (date == null) return dateValue;
+            return output.format(date);
+        } catch (Exception e) {
+            return dateValue;
         }
     }
 

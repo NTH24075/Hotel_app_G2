@@ -23,12 +23,19 @@ import com.example.hotellapp.database.DatabaseContract;
 import com.example.hotellapp.database.DatabaseHelper;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 public class RoomDetailActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private int roomTypeId;
+
+    private String checkInDate;
+    private String checkOutDate;
+    private int guestCount;
+    private int numberOfRooms;
 
     private TextView tvHeaderTitle;
     private TextView tvRoomName;
@@ -61,6 +68,11 @@ public class RoomDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_room_detail);
 
         roomTypeId = getIntent().getIntExtra("ROOM_TYPE_ID", -1);
+        checkInDate = safeIntentDate(getIntent().getStringExtra("CHECK_IN_DATE"), getTodayPlusDays(0));
+        checkOutDate = safeIntentDate(getIntent().getStringExtra("CHECK_OUT_DATE"), getTodayPlusDays(2));
+        guestCount = getIntent().getIntExtra("GUEST_COUNT", 2);
+        numberOfRooms = getIntent().getIntExtra("NUMBER_OF_ROOMS", 1);
+
         if (roomTypeId == -1) {
             Toast.makeText(this, "Không tìm thấy thông tin phòng", Toast.LENGTH_SHORT).show();
             finish();
@@ -111,10 +123,10 @@ public class RoomDetailActivity extends AppCompatActivity {
             intent.putExtra("AREA_TEXT", tvAreaValue.getText().toString());
             intent.putExtra("AVAILABILITY_TEXT", tvAvailabilityLine.getText().toString());
 
-            intent.putExtra("CHECK_IN_DATE", "2026-04-17");
-            intent.putExtra("CHECK_OUT_DATE", "2026-04-19");
-            intent.putExtra("GUEST_COUNT", 2);
-            intent.putExtra("NUMBER_OF_ROOMS", 1);
+            intent.putExtra("CHECK_IN_DATE", checkInDate);
+            intent.putExtra("CHECK_OUT_DATE", checkOutDate);
+            intent.putExtra("GUEST_COUNT", guestCount);
+            intent.putExtra("NUMBER_OF_ROOMS", numberOfRooms);
 
             startActivity(intent);
         });
@@ -178,7 +190,9 @@ public class RoomDetailActivity extends AppCompatActivity {
 
             NumberFormat money = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
             double oldPrice = pricePerNight / 0.85d;
-            double totalPrice = pricePerNight * 2;
+
+            int nights = calculateNights(checkInDate, checkOutDate);
+            double totalPrice = pricePerNight * nights * numberOfRooms;
 
             tvHeaderTitle.setText("Chi tiết phòng");
             tvRoomName.setText("Phòng " + roomName);
@@ -192,7 +206,9 @@ public class RoomDetailActivity extends AppCompatActivity {
             tvFloorValue.setText("Tầng " + floorNumber);
             tvAvailabilityLine.setText(
                     availableCount + " phòng trống · Nhận phòng " + checkInTime +
-                            " · Trả phòng " + checkOutTime + " · 17/04 → 19/04"
+                            " · Trả phòng " + checkOutTime +
+                            " · " + formatDateDisplayShort(checkInDate) +
+                            " → " + formatDateDisplayShort(checkOutDate)
             );
 
             tvDescription.setText(fullDescription);
@@ -201,7 +217,8 @@ public class RoomDetailActivity extends AppCompatActivity {
 
             tvOldPrice.setText(money.format(Math.round(oldPrice)) + " đ");
             tvCurrentPrice.setText(money.format(Math.round(pricePerNight)) + " đ");
-            tvTotalPrice.setText("Tổng 2 đêm: " + money.format(Math.round(totalPrice)) + " đ · Đã gồm VAT");
+            tvTotalPrice.setText("Tổng " + nights + " đêm: " +
+                    money.format(Math.round(totalPrice)) + " đ · Đã gồm VAT");
         }
     }
 
@@ -407,7 +424,6 @@ public class RoomDetailActivity extends AppCompatActivity {
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(12), dp(12), dp(12), dp(12));
 
-        // Dòng 1: tên guest
         TextView nameView = new TextView(this);
         nameView.setText(safeText(guestName, "Khách hàng"));
         nameView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
@@ -415,7 +431,6 @@ public class RoomDetailActivity extends AppCompatActivity {
         nameView.setTextColor(ContextCompat.getColor(this, R.color.text_black));
         body.addView(nameView);
 
-        // Dòng 2: sao
         TextView starView = new TextView(this);
         LinearLayout.LayoutParams starParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -428,7 +443,6 @@ public class RoomDetailActivity extends AppCompatActivity {
         starView.setTextColor(ContextCompat.getColor(this, R.color.accent_gold));
         body.addView(starView);
 
-        // Dòng 3: comment
         TextView commentView = new TextView(this);
         LinearLayout.LayoutParams commentParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -444,6 +458,45 @@ public class RoomDetailActivity extends AppCompatActivity {
 
         card.addView(body);
         return card;
+    }
+
+    private int calculateNights(String checkIn, String checkOut) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            sdf.setLenient(false);
+
+            Date inDate = sdf.parse(checkIn);
+            Date outDate = sdf.parse(checkOut);
+
+            if (inDate == null || outDate == null) return 1;
+
+            long diff = outDate.getTime() - inDate.getTime();
+            int nights = (int) (diff / (1000L * 60 * 60 * 24));
+            return Math.max(nights, 1);
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+
+    private String formatDateDisplayShort(String dateValue) {
+        try {
+            SimpleDateFormat input = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat output = new SimpleDateFormat("dd/MM", Locale.getDefault());
+            Date date = input.parse(dateValue);
+            if (date == null) return dateValue;
+            return output.format(date);
+        } catch (Exception e) {
+            return dateValue;
+        }
+    }
+
+    private String safeIntentDate(String value, String fallback) {
+        return value == null || value.trim().isEmpty() ? fallback : value;
+    }
+
+    private String getTodayPlusDays(int days) {
+        long millis = System.currentTimeMillis() + days * 24L * 60 * 60 * 1000;
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date(millis));
     }
 
     private String buildStars(int rating) {
