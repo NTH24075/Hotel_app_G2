@@ -634,6 +634,7 @@ public class BookingDAO {
         try {
             int sqliteUserId = getOrCreateSQLiteUserId(db, fullName, email, phone);
             if (sqliteUserId == -1) {
+                android.util.Log.e("BOOKING_DEBUG", "FAIL at getOrCreateSQLiteUserId");
                 return -1;
             }
 
@@ -643,7 +644,10 @@ public class BookingDAO {
             }
 
             double pricePerNight = getRoomTypePrice(db, roomTypeId);
+            android.util.Log.d("BOOKING_DEBUG", "roomTypeId=" + roomTypeId + ", pricePerNight=" + pricePerNight);
+
             if (pricePerNight <= 0) {
+                android.util.Log.e("BOOKING_DEBUG", "FAIL at getRoomTypePrice");
                 return -1;
             }
 
@@ -659,33 +663,56 @@ public class BookingDAO {
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_GUEST_COUNT, guestCount);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_NUMBER_OF_ROOMS, numberOfRooms);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_TOTAL_AMOUNT, roomTotal);
-            bookingValues.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS, DatabaseContract.BookingsTable.STATUS_PENDING);
+            bookingValues.put(DatabaseContract.BookingsTable.COLUMN_BOOKING_STATUS,
+                    DatabaseContract.BookingsTable.STATUS_PENDING);
             bookingValues.put(DatabaseContract.BookingsTable.COLUMN_SPECIAL_REQUEST, specialRequest);
 
-            long bookingIdLong = db.insert(DatabaseContract.BookingsTable.TABLE_NAME, null, bookingValues);
+            long bookingIdLong = db.insertOrThrow(
+                    DatabaseContract.BookingsTable.TABLE_NAME,
+                    null,
+                    bookingValues
+            );
+
             if (bookingIdLong == -1) {
+                android.util.Log.e("BOOKING_DEBUG", "FAIL insert Bookings");
                 return -1;
             }
 
             int bookingId = (int) bookingIdLong;
 
+            // Xóa Payment cũ nếu tồn tại (tránh UNIQUE constraint failed trên BookingId)
+            db.delete(
+                    DatabaseContract.PaymentsTable.TABLE_NAME,
+                    DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID + " = ?",
+                    new String[]{String.valueOf(bookingId)}
+            );
+
             ContentValues paymentValues = new ContentValues();
             paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_BOOKING_ID, bookingId);
             paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_AMOUNT, roomTotal);
-            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_METHOD, "Cash");
-            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_STATUS, DatabaseContract.PaymentsTable.STATUS_UNPAID);
+            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_METHOD, "Pending");
+            paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_STATUS,
+                    DatabaseContract.PaymentsTable.STATUS_UNPAID);
             paymentValues.putNull(DatabaseContract.PaymentsTable.COLUMN_PAID_AT);
             paymentValues.put(DatabaseContract.PaymentsTable.COLUMN_NOTE, "Chưa thanh toán");
 
-            long paymentIdLong = db.insert(DatabaseContract.PaymentsTable.TABLE_NAME, null, paymentValues);
+            long paymentIdLong = db.insertOrThrow(
+                    DatabaseContract.PaymentsTable.TABLE_NAME,
+                    null,
+                    paymentValues
+            );
+
             if (paymentIdLong == -1) {
+                android.util.Log.e("BOOKING_DEBUG", "FAIL insert Payments");
                 return -1;
             }
 
             db.setTransactionSuccessful();
+            android.util.Log.d("BOOKING_DEBUG", "SUCCESS bookingId=" + bookingId);
             return bookingId;
 
         } catch (Exception e) {
+            android.util.Log.e("BOOKING_DEBUG", "EXCEPTION createBooking: " + e.getMessage(), e);
             e.printStackTrace();
             return -1;
         } finally {

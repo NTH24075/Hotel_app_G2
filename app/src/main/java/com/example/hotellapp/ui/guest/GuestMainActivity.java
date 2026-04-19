@@ -55,6 +55,7 @@ public class GuestMainActivity extends AppCompatActivity {
         setupListeners();
         setupBottomNavigation();
         updateDateViews();
+        updateGuestViews();
     }
 
     private void initViews() {
@@ -72,7 +73,15 @@ public class GuestMainActivity extends AppCompatActivity {
         rvRooms = findViewById(R.id.rooms_recycler);
 
         rvRooms.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
         calendarView.setMinDate(System.currentTimeMillis() - 1000);
+
+        checkInCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        checkInCalendar.set(Calendar.MINUTE, 0);
+        checkInCalendar.set(Calendar.SECOND, 0);
+        checkInCalendar.set(Calendar.MILLISECOND, 0);
+
+        checkOutCalendar = (Calendar) checkInCalendar.clone();
         checkOutCalendar.add(Calendar.DAY_OF_YEAR, 2);
     }
 
@@ -94,21 +103,25 @@ public class GuestMainActivity extends AppCompatActivity {
 
     private void populateRoomTypeDropdown() {
         llRoomTypeDropdown.removeAllViews();
+
         for (RoomType roomType : roomTypeList) {
             TextView option = new TextView(this);
-            option.setText(roomType.getTypeName() + " (" + String.format(Locale.getDefault(), "%,.0f", roomType.getPricePerNight()) + " đ)");
+            option.setText(roomType.getTypeName() + " (" +
+                    String.format(Locale.getDefault(), "%,.0f", roomType.getPricePerNight()) + " đ)");
             option.setPadding(32, 24, 32, 24);
             option.setTextSize(14);
             option.setTextColor(Color.BLACK);
             option.setClickable(true);
             option.setFocusable(true);
             option.setBackgroundResource(android.R.drawable.list_selector_background);
+
             option.setOnClickListener(v -> {
                 selectedRoomType = roomType;
                 tvSelectedRoomType.setText(roomType.getTypeName());
                 llRoomTypeDropdown.setVisibility(View.GONE);
                 findViewById(R.id.tv_room_type_arrow).setRotation(0);
             });
+
             llRoomTypeDropdown.addView(option);
         }
     }
@@ -131,10 +144,12 @@ public class GuestMainActivity extends AppCompatActivity {
 
             if (isSelectingCheckIn) {
                 checkInCalendar = selected;
+
                 if (!checkOutCalendar.after(checkInCalendar)) {
                     checkOutCalendar = (Calendar) checkInCalendar.clone();
                     checkOutCalendar.add(Calendar.DAY_OF_YEAR, 1);
                 }
+
                 isSelectingCheckIn = false;
                 calendarView.setDate(checkOutCalendar.getTimeInMillis());
             } else {
@@ -142,14 +157,19 @@ public class GuestMainActivity extends AppCompatActivity {
                     Toast.makeText(this, "Ngày trả phòng không hợp lệ", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
                 checkOutCalendar = selected;
                 llCalendarDropdown.setVisibility(View.GONE);
             }
+
             updateDateViews();
         });
 
-        findViewById(R.id.btn_close_calendar).setOnClickListener(v -> llCalendarDropdown.setVisibility(View.GONE));
+        findViewById(R.id.btn_close_calendar).setOnClickListener(v ->
+                llCalendarDropdown.setVisibility(View.GONE));
+
         findViewById(R.id.btn_check_availability).setOnClickListener(v -> performSearch());
+
         findViewById(R.id.tv_view_all_rooms).setOnClickListener(v -> openSearchResults(-1));
     }
 
@@ -163,23 +183,49 @@ public class GuestMainActivity extends AppCompatActivity {
 
     private void openSearchResults(int roomTypeId) {
         Intent intent = new Intent(this, SearchResultsActivity.class);
-        SimpleDateFormat dayFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
-        long diff = checkOutCalendar.getTimeInMillis() - checkInCalendar.getTimeInMillis();
-        long nights = diff / (24 * 60 * 60 * 1000);
 
-        String dates = dayFormat.format(checkInCalendar.getTime()) + " → "
-                + dayFormat.format(checkOutCalendar.getTime()) + " · " + nights + " đêm";
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
+        SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+        long diff = checkOutCalendar.getTimeInMillis() - checkInCalendar.getTimeInMillis();
+        long nights = diff / (24L * 60 * 60 * 1000);
+        nights = Math.max(nights, 1);
+
+        String dates = displayFormat.format(checkInCalendar.getTime()) + " → "
+                + displayFormat.format(checkOutCalendar.getTime()) + " · " + nights + " đêm";
+
         String guests = adultCount + " người" + (childCount > 0 ? ", " + childCount + " trẻ em" : "");
+
+        String selectedCheckInDate = apiFormat.format(checkInCalendar.getTime());
+        String selectedCheckOutDate = apiFormat.format(checkOutCalendar.getTime());
 
         intent.putExtra("SEARCH_DATES", dates);
         intent.putExtra("SEARCH_GUESTS", guests);
         intent.putExtra("ROOM_TYPE_ID", roomTypeId);
+
+        // truyền ngày thật sang SearchResultsActivity
+        intent.putExtra("CHECK_IN_DATE", selectedCheckInDate);
+        intent.putExtra("CHECK_OUT_DATE", selectedCheckOutDate);
+        intent.putExtra("GUEST_COUNT", adultCount);
+        intent.putExtra("NUMBER_OF_ROOMS", 1);
+
         startActivity(intent);
     }
 
     private void openRoomDetail(Room room) {
         Intent intent = new Intent(this, RoomDetailActivity.class);
+
+        SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+        String selectedCheckInDate = apiFormat.format(checkInCalendar.getTime());
+        String selectedCheckOutDate = apiFormat.format(checkOutCalendar.getTime());
+
         intent.putExtra("ROOM_TYPE_ID", room.getRoomTypeId());
+        intent.putExtra("CHECK_IN_DATE", selectedCheckInDate);
+        intent.putExtra("CHECK_OUT_DATE", selectedCheckOutDate);
+        intent.putExtra("GUEST_COUNT", adultCount);
+        intent.putExtra("NUMBER_OF_ROOMS", 1);
+
         startActivity(intent);
     }
 
@@ -188,23 +234,39 @@ public class GuestMainActivity extends AppCompatActivity {
             llCalendarDropdown.setVisibility(View.GONE);
             return;
         }
+
         llCalendarDropdown.setVisibility(View.VISIBLE);
         isSelectingCheckIn = selectCheckIn;
-        calendarView.setDate(selectCheckIn ? checkInCalendar.getTimeInMillis() : checkOutCalendar.getTimeInMillis());
+        calendarView.setDate(selectCheckIn
+                ? checkInCalendar.getTimeInMillis()
+                : checkOutCalendar.getTimeInMillis());
+
         llRoomTypeDropdown.setVisibility(View.GONE);
     }
 
     private void updateDateViews() {
         SimpleDateFormat dayFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
         SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
+
         tvCheckInDay.setText(dayFormat.format(checkInCalendar.getTime()));
         tvCheckInYear.setText(yearFormat.format(checkInCalendar.getTime()));
         tvCheckOutDay.setText(dayFormat.format(checkOutCalendar.getTime()));
         tvCheckOutYear.setText(yearFormat.format(checkOutCalendar.getTime()));
     }
 
+    private void updateGuestViews() {
+        if (tvAdultCount != null) {
+            tvAdultCount.setText(String.valueOf(adultCount));
+        }
+        if (tvChildCount != null) {
+            tvChildCount.setText(String.valueOf(childCount));
+        }
+    }
+
     private void setupBottomNavigation() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView == null) return;
+
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();

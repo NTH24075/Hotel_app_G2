@@ -19,6 +19,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.List;
 
 public class SearchResultsActivity extends AppCompatActivity {
+
+    private String checkInDate;
+    private String checkOutDate;
+    private int guestCount;
+    private int numberOfRooms;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +33,12 @@ public class SearchResultsActivity extends AppCompatActivity {
         String dates = getIntent().getStringExtra("SEARCH_DATES");
         String guests = getIntent().getStringExtra("SEARCH_GUESTS");
         int roomTypeId = getIntent().getIntExtra("ROOM_TYPE_ID", -1);
+
+        // nhận ngày thật từ GuestMainActivity
+        checkInDate = getIntent().getStringExtra("CHECK_IN_DATE");
+        checkOutDate = getIntent().getStringExtra("CHECK_OUT_DATE");
+        guestCount = getIntent().getIntExtra("GUEST_COUNT", 2);
+        numberOfRooms = getIntent().getIntExtra("NUMBER_OF_ROOMS", 1);
 
         TextView tvDates = findViewById(R.id.tv_search_dates);
         TextView tvGuests = findViewById(R.id.tv_search_guests);
@@ -41,12 +53,11 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         RoomDAO roomDAO = new RoomDAO(this);
-        // Lấy kết quả phòng lẻ từ DAO
         List<Room> results = roomDAO.getRoomsByFilters(roomTypeId);
 
         rvResults.setLayoutManager(new LinearLayoutManager(this));
         rvResults.setAdapter(new SearchResultAdapter(this, results, this::openRoomDetail));
-        
+
         if (tvResultCount != null) {
             tvResultCount.setText(getString(R.string.search_result_count, results.size()));
         }
@@ -58,6 +69,13 @@ public class SearchResultsActivity extends AppCompatActivity {
     private void openRoomDetail(Room room) {
         Intent intent = new Intent(this, RoomDetailActivity.class);
         intent.putExtra("ROOM_TYPE_ID", room.getRoomTypeId());
+
+        // truyền tiếp ngày thật
+        intent.putExtra("CHECK_IN_DATE", checkInDate);
+        intent.putExtra("CHECK_OUT_DATE", checkOutDate);
+        intent.putExtra("GUEST_COUNT", guestCount);
+        intent.putExtra("NUMBER_OF_ROOMS", numberOfRooms);
+
         startActivity(intent);
     }
 
@@ -71,11 +89,13 @@ public class SearchResultsActivity extends AppCompatActivity {
 
     private boolean handleBottomNavigation(MenuItem item) {
         int itemId = item.getItemId();
+
         if (itemId == R.id.nav_home) {
             startActivity(new Intent(this, GuestMainActivity.class));
             finish();
             return true;
         }
+
         if (itemId == R.id.nav_booking) {
             return true;
         }
