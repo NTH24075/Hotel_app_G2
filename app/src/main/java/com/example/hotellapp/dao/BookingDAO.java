@@ -11,6 +11,7 @@ import com.example.hotellapp.models.Booking;
 
 import com.example.hotellapp.models.BookingDetail;
 import com.example.hotellapp.models.PaymentInfo;
+import com.example.hotellapp.models.RevenueStats;
 import com.example.hotellapp.models.ServiceItem;
 
 import java.text.SimpleDateFormat;
@@ -1126,5 +1127,87 @@ public class BookingDAO {
 
         return result != -1;
     }
+    public double getTotalRevenue() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        double total = 0;
 
+        String sql = "SELECT COALESCE(SUM(" + DatabaseContract.PaymentsTable.COLUMN_AMOUNT + "), 0) " +
+                "FROM " + DatabaseContract.PaymentsTable.TABLE_NAME + " " +
+                "WHERE UPPER(" + DatabaseContract.PaymentsTable.COLUMN_STATUS + ") IN ('PAID', 'DONE')";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            total = cursor.getDouble(0);
+        }
+
+        cursor.close();
+        db.close();
+        return total;
+    }
+
+    public double getRevenueToday() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        double total = 0;
+
+        String sql = "SELECT COALESCE(SUM(" + DatabaseContract.PaymentsTable.COLUMN_AMOUNT + "), 0) " +
+                "FROM " + DatabaseContract.PaymentsTable.TABLE_NAME + " " +
+                "WHERE UPPER(" + DatabaseContract.PaymentsTable.COLUMN_STATUS + ") IN ('PAID', 'DONE') " +
+                "AND date(" + DatabaseContract.PaymentsTable.COLUMN_PAID_AT + ") = date('now', 'localtime')";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            total = cursor.getDouble(0);
+        }
+
+        cursor.close();
+        db.close();
+        return total;
+    }
+
+    public double getRevenueThisMonth() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        double total = 0;
+
+        String sql = "SELECT COALESCE(SUM(" + DatabaseContract.PaymentsTable.COLUMN_AMOUNT + "), 0) " +
+                "FROM " + DatabaseContract.PaymentsTable.TABLE_NAME + " " +
+                "WHERE UPPER(" + DatabaseContract.PaymentsTable.COLUMN_STATUS + ") IN ('PAID', 'DONE') " +
+                "AND strftime('%Y-%m', " + DatabaseContract.PaymentsTable.COLUMN_PAID_AT + ") = " +
+                "strftime('%Y-%m', 'now', 'localtime')";
+
+        Cursor cursor = db.rawQuery(sql, null);
+        if (cursor.moveToFirst()) {
+            total = cursor.getDouble(0);
+        }
+
+        cursor.close();
+        db.close();
+        return total;
+    }
+
+    public double getRevenueByDateRange(String fromDate, String toDate) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        double total = 0;
+
+        String sql = "SELECT COALESCE(SUM(" + DatabaseContract.PaymentsTable.COLUMN_AMOUNT + "), 0) " +
+                "FROM " + DatabaseContract.PaymentsTable.TABLE_NAME + " " +
+                "WHERE UPPER(" + DatabaseContract.PaymentsTable.COLUMN_STATUS + ") IN ('PAID', 'DONE') " +
+                "AND date(" + DatabaseContract.PaymentsTable.COLUMN_PAID_AT + ") BETWEEN date(?) AND date(?)";
+
+        Cursor cursor = db.rawQuery(sql, new String[]{fromDate, toDate});
+        if (cursor.moveToFirst()) {
+            total = cursor.getDouble(0);
+        }
+
+        cursor.close();
+        db.close();
+        return total;
+    }
+
+    public RevenueStats getRevenueStats() {
+        RevenueStats stats = new RevenueStats();
+        stats.setTodayRevenue(getRevenueToday());
+        stats.setMonthRevenue(getRevenueThisMonth());
+        stats.setTotalRevenue(getTotalRevenue());
+        return stats;
+    }
 }

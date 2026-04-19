@@ -11,12 +11,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.hotellapp.MainActivity;
 import com.example.hotellapp.R;
+import com.example.hotellapp.dao.BookingDAO;
 import com.example.hotellapp.dao.UserDAO;
 import com.example.hotellapp.database.AppDatabase;
+import com.example.hotellapp.models.RevenueStats;
 import com.example.hotellapp.utils.SessionManager;
 
 public class AdminMainActivity extends AppCompatActivity {
-
+    private TextView tvRevenueToday, tvRevenueMonth, tvRevenueTotal;
+    private BookingDAO bookingDAO;
     private TextView tvAdminName, tvAdminEmail;
     private TextView tvTotalUsers, tvTotalAdmins, tvTotalGuests, tvTotalReceptionists;
 
@@ -46,6 +49,7 @@ public class AdminMainActivity extends AppCompatActivity {
         }
 
         initViews();
+        loadRevenueStats();
         bindAdminInfo();
         loadStats();
         initActions();
@@ -54,6 +58,7 @@ public class AdminMainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadStats();
+        loadRevenueStats();
     }
     private void initViews() {
         tvAdminName = findViewById(R.id.tvAdminName);
@@ -67,6 +72,11 @@ public class AdminMainActivity extends AppCompatActivity {
         btnManageUsers = findViewById(R.id.btnManageUsers);
         btnSearchUser = findViewById(R.id.btnSearchUser);
 
+        tvRevenueToday = findViewById(R.id.tvRevenueToday);
+        tvRevenueMonth = findViewById(R.id.tvRevenueMonth);
+        tvRevenueTotal = findViewById(R.id.tvRevenueTotal);
+
+        bookingDAO = new BookingDAO(this);
 
 //        btnHotelInfo = findViewById(R.id.btnHotelInfo);
 //        btnUpdateHotel = findViewById(R.id.btnUpdateHotel);
@@ -114,5 +124,18 @@ public class AdminMainActivity extends AppCompatActivity {
             Intent intent = new Intent(AdminMainActivity.this, destinationClass);
             startActivity(intent);
         });
+    }
+
+    private void loadRevenueStats() {
+        RevenueStats stats = bookingDAO.getRevenueStats();
+
+        tvRevenueToday.setText(formatMoney(stats.getTodayRevenue()));
+        tvRevenueMonth.setText(formatMoney(stats.getMonthRevenue()));
+        tvRevenueTotal.setText(formatMoney(stats.getTotalRevenue()));
+    }
+
+    private String formatMoney(double amount) {
+        java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
+        return formatter.format(amount) + " đ";
     }
 }
