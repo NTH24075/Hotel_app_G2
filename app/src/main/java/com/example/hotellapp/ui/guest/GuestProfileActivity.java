@@ -19,7 +19,7 @@ import com.example.hotellapp.utils.SessionManager;
 public class GuestProfileActivity extends AppCompatActivity {
 
     private TextView tvFullName, tvEmail, tvPhone, tvCitizenId, tvAddress;
-    private Button btnUpdateProfile, btnChangePassword, btnForgotPassword,
+    private Button btnUpdateProfile, btnChangePassword,
             btnBookingHistory, btnLogout, btnBackHome;
 
     private SessionManager sessionManager;
@@ -58,7 +58,6 @@ public class GuestProfileActivity extends AppCompatActivity {
 
         btnUpdateProfile = findViewById(R.id.btnUpdateInfo);
         btnChangePassword = findViewById(R.id.btnChangePassword);
-        btnForgotPassword = findViewById(R.id.btnForgotPassword);
         btnBookingHistory = findViewById(R.id.btnBookingHistory);
         btnLogout = findViewById(R.id.btnLogout);
         btnBackHome = findViewById(R.id.btnBackHome);

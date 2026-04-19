@@ -181,16 +181,6 @@
             android:textSize="16sp" />
 
         <Button
-            android:id="@+id/btnForgotPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:minHeight="52dp"
-            android:text="Quên mật khẩu"
-            android:textAllCaps="false"
-            android:textSize="16sp" />
-
-        <Button
             android:id="@+id/btnBookingHistory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
